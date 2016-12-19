@@ -179,7 +179,7 @@ namespace BlinkEscape
 					{
 						if (me.FindItem("item_blink") != null && me.FindItem("item_blink").CanBeCasted() && Utils.SleepCheck("blink2"))
 						{
-							var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1400;
+							var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1420;
 							var a2 = me.Position.ToVector2().FindAngleBetween(e.Position.ToVector2(), true);
 							
 							safeRange -= (int)me.HullRadius;
@@ -212,7 +212,7 @@ namespace BlinkEscape
 					{
 						if (me.FindItem("item_blink") != null && me.FindItem("item_blink").CanBeCasted() && Utils.SleepCheck("blink3"))
 						{
-							var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1400;
+							var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1420;
 							safeRange -= (int)me.HullRadius;
 
 							var p13 = new Vector3(
@@ -250,7 +250,7 @@ namespace BlinkEscape
 						|| me.Modifiers.Any(y => y.Name == "modifier_item_rod_of_atos")
 						))
 					{
-						var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1400;
+						var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1420;
 						safeRange -= (int)me.HullRadius;
 
 						var home = ObjectMgr.GetEntities<Entity>().FirstOrDefault(x => x.Team == me.Team && x.ClassID == ClassID.CDOTA_Unit_Fountain) as Unit;
@@ -314,7 +314,7 @@ namespace BlinkEscape
 							&& !me.Modifiers.Any(y => y.Name == "modifier_pudge_rot")
 							)
 					{
-						var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1400;
+						var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1420;
 						safeRange -= (int)me.HullRadius;
 						var home = ObjectMgr.GetEntities<Entity>().FirstOrDefault(x => x.Team == me.Team && x.ClassID == ClassID.CDOTA_Unit_Fountain) as Unit;
 						var findangle = me.NetworkPosition.ToVector2().FindAngleBetween(home.NetworkPosition.ToVector2(), true);
@@ -423,7 +423,7 @@ namespace BlinkEscape
 			if (aether == null)
 				aetherrange = 0;
 			else
-				aetherrange = 200;
+				aetherrange = 220;
 			
 
 			if (Menu.Item("Show Direction").GetValue<bool>())
@@ -559,7 +559,7 @@ namespace BlinkEscape
 									me.Position.Z);*/
 									
 
-				var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1400;
+				var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1420;
 				var a2 = me.Position.ToVector2().FindAngleBetween(target.Position.ToVector2(), true);
 				
 				safeRange -= (int)me.HullRadius;
