@@ -71,8 +71,7 @@ namespace Tinker_Air13
         private static int[] dagondistance = new int[5] { 600, 650, 700, 750, 800 };	
         private static int[] dagondamage = new int[5] { 400, 500, 600, 700, 800 };	
 
-		
-		
+
 		private static int dagon_mana = 180, veil_mana = 50, sheep_mana = 100, ethereal_mana = 100, shiva_mana = 100;
 		private static int ensage_error = 50;
 
@@ -158,7 +157,6 @@ namespace Tinker_Air13
 			
             Drawing.OnDraw += Information;
 			Drawing.OnDraw += DrawRanges;
-
         }
 		
 		/*
@@ -244,9 +242,7 @@ namespace Tinker_Air13
             }
         }*/
 
-		
-		
-		
+
         public static void ComboEngine(EventArgs args)
         {
             if (!Game.IsInGame || Game.IsWatchingGame)
@@ -256,6 +252,13 @@ namespace Tinker_Air13
                 return;
             if (me.ClassID != ClassID.CDOTA_Unit_Hero_Tinker)
                 return;
+
+            //Print safespots into console
+            /*if(Game.IsKeyDown(new KeyBind('O', KeyBindType.Press).Key) && !Game.IsChatOpen)
+            {
+                Console.WriteLine(me.Position.ToString());
+                Utils.Sleep(1000, "Safeposition");
+            }*/
 
 
             if ((me.HasModifier("modifier_fountain_aura_buff") && Menu.Item("autoRearm").IsActive()))
@@ -365,7 +368,7 @@ namespace Tinker_Air13
                             Utils.Sleep(250, "blink");
                         }
                     }
-                }*/
+                }
 
                 if (soulring != null
                     && soulring.CanBeCasted()
@@ -376,17 +379,16 @@ namespace Tinker_Air13
                 {
                     soulring.UseAbility();
                     Utils.Sleep(250, "soulring");
-                }
-                if (
-                  Refresh != null
-                  && Refresh.CanBeCasted()
-                  && travel != null
-                  && !travel.CanBeCasted()
-                  //&& me.Distance2D(fount.First().Position) <= 900
-                  && !me.IsChanneling()
-                  //&& Menu.Item("Skills").GetValue<AbilityToggler>().IsEnabled(Refresh.Name)
-                  && Utils.SleepCheck("Rearms")
-                  )
+                }*/
+
+                if (Refresh != null
+                    && Refresh.CanBeCasted()
+                    && travel != null
+                    && !travel.CanBeCasted()
+                    //&& me.Distance2D(fount.First().Position) <= 900
+                    && !me.IsChanneling()
+                    //&& Menu.Item("Skills").GetValue<AbilityToggler>().IsEnabled(Refresh.Name)
+                    && Utils.SleepCheck("Rearms"))
                 {
                     Refresh.UseAbility();
                     if (Refresh.Level == 1)
@@ -398,9 +400,10 @@ namespace Tinker_Air13
                 }
             }
 
-            if (Game.IsKeyDown(Menu.Item("Rocket Spam Key").GetValue<KeyBind>().Key) && Utils.SleepCheck("RocketSpam") && !Game.IsChatOpen)
+            if (Game.IsKeyDown(Menu.Item("Rocket Spam Key").GetValue<KeyBind>().Key) 
+                && Utils.SleepCheck("RocketSpam") 
+                && !Game.IsChatOpen)
             {
-
 				FindItems();
 
 				if (blink != null && blink.CanBeCasted() 
@@ -427,7 +430,6 @@ namespace Tinker_Air13
 				
 					blink.UseAbility(p);
                     Utils.Sleep(50, "Blinks");
-
 				}
 						
 				/*
@@ -436,7 +438,13 @@ namespace Tinker_Air13
 					soulring.UseAbility();
 				}
 				*/
-				if (bottle != null && bottle.CanBeCasted() && !me.IsChanneling() && (blink==null || (blink!=null && me.Distance2D(Game.MousePosition) <= 650+ aetherrange  + ensage_error)) && !me.Modifiers.Any(x => x.Name == "modifier_bottle_regeneration") && (me.MaximumMana-me.Mana)>60 && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(bottle.Name) && Utils.SleepCheck("Rearms"))
+				if (bottle != null 
+                    && bottle.CanBeCasted() 
+                    && !me.IsChanneling() 
+                    && (blink==null || (blink!=null && me.Distance2D(Game.MousePosition) <= 650+ aetherrange  + ensage_error)) 
+                    && !me.Modifiers.Any(x => x.Name == "modifier_bottle_regeneration") 
+                    && (me.MaximumMana-me.Mana)>60 && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(bottle.Name) 
+                    && Utils.SleepCheck("Rearms"))
 				{
 					bottle.UseAbility();
 				}
@@ -462,7 +470,11 @@ namespace Tinker_Air13
 						)
 					{	
 						
-						if (soulring != null && soulring.CanBeCasted() && !me.IsChanneling() && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name) && Utils.SleepCheck("Rearms"))
+						if (soulring != null 
+                            && soulring.CanBeCasted() 
+                            && !me.IsChanneling() 
+                            && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name) 
+                            && Utils.SleepCheck("Rearms"))
 						{
 							soulring.UseAbility();
 						}
@@ -471,7 +483,15 @@ namespace Tinker_Air13
 					}
 					
 						
-					if ((soulring == null || !soulring.CanBeCasted() || !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name)) && me.Distance2D(e) <= 2500 && (!Rocket.CanBeCasted()  || Rocket.Level <= 0 || !Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(Rocket.Name)) && (blink == null || !blink.CanBeCasted() || me.Distance2D(Game.MousePosition) <= 650+ aetherrange  + ensage_error) && (Refresh.Level >= 0 && Refresh.CanBeCasted()) && !me.IsChanneling() && !me.Spellbook.Spells.Any(x => x.IsInAbilityPhase)  && Utils.SleepCheck("Rearms") && Utils.SleepCheck("Blinks"))
+					if ((soulring == null || !soulring.CanBeCasted() || !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name)) 
+                        && me.Distance2D(e) <= 2500 
+                        && (!Rocket.CanBeCasted() || Rocket.Level <= 0 || !Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(Rocket.Name)) 
+                        && (blink == null || !blink.CanBeCasted() || me.Distance2D(Game.MousePosition) <= 650+ aetherrange  + ensage_error) 
+                        && (Refresh.Level >= 0 && Refresh.CanBeCasted()) 
+                        && !me.IsChanneling() 
+                        && !me.Spellbook.Spells.Any(x => x.IsInAbilityPhase) 
+                        && Utils.SleepCheck("Rearms") 
+                        && Utils.SleepCheck("Blinks"))
 					{
 
 						Refresh.UseAbility();
@@ -492,11 +512,17 @@ namespace Tinker_Air13
 					&& !me.IsChanneling() 
 					&& !me.Spellbook.Spells.Any(x => x.IsInAbilityPhase) 
 					&& Utils.SleepCheck("Rearms") 
-					&& Utils.SleepCheck("Blinks")
-					)
+					&& Utils.SleepCheck("Blinks"))
 				{
-					if (soulring != null && soulring.CanBeCasted() && !me.IsChanneling() && (blink!=null && me.Distance2D(Game.MousePosition) > 650+ aetherrange  + ensage_error) && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name) && Utils.SleepCheck("Rearms"))
-						soulring.UseAbility();
+					if (soulring != null 
+                        && soulring.CanBeCasted() 
+                        && !me.IsChanneling() 
+                        && (blink!=null && me.Distance2D(Game.MousePosition) > 650+ aetherrange  + ensage_error) 
+                        && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name) 
+                        && Utils.SleepCheck("Rearms"))
+                    {
+                        soulring.UseAbility();
+                    }
 						
 					Refresh.UseAbility();
 					if (Refresh.Level == 1)
@@ -520,12 +546,9 @@ namespace Tinker_Air13
 				Utils.Sleep(120, "RocketSpam");
 			}
 			
-			
 			if (Game.IsKeyDown(Menu.Item("March Spam Key").GetValue<KeyBind>().Key) && Utils.SleepCheck("MarchSpam") && !Game.IsChatOpen)
             {
 				FindItems();
-				
-				
 				
 				if (blink != null && blink.CanBeCasted() 
 					&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(blink.Name) 
@@ -553,7 +576,6 @@ namespace Tinker_Air13
 				
 					blink.UseAbility(p);
                     Utils.Sleep(250, "Blinks");
-
 				}
 				
 				
@@ -563,20 +585,41 @@ namespace Tinker_Air13
 					ghost.UseAbility(false);
 				}
 				*/
-				if (soulring != null && soulring.CanBeCasted() && !me.IsChanneling() && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name) && Utils.SleepCheck("Rearms"))
+				if (soulring != null 
+                    && soulring.CanBeCasted() 
+                    && !me.IsChanneling() 
+                    && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name) 
+                    && Utils.SleepCheck("Rearms"))
 				{
 					soulring.UseAbility();
 				}
-				if (bottle != null && bottle.CanBeCasted() && !me.IsChanneling() && !me.Modifiers.Any(x => x.Name == "modifier_bottle_regeneration") && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(bottle.Name) && Utils.SleepCheck("Rearms"))
+
+				if (bottle != null 
+                    && bottle.CanBeCasted() 
+                    && !me.IsChanneling() 
+                    && !me.Modifiers.Any(x => x.Name == "modifier_bottle_regeneration") 
+                    && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(bottle.Name) 
+                    && Utils.SleepCheck("Rearms"))
 				{
 					bottle.UseAbility();
 				}
-				if (March != null && March.CanBeCasted() && (blink == null || !blink.CanBeCasted() || me.Distance2D(Game.MousePosition) <= 650+ aetherrange + ensage_error || !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_blink")) && !me.IsChanneling() && Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(March.Name) && Utils.SleepCheck("Rearms")) //&& me.Mana >= March.ManaCost + 75 
+
+				if (March != null 
+                    && March.CanBeCasted() 
+                    && (blink == null || !blink.CanBeCasted() || me.Distance2D(Game.MousePosition) <= 650+ aetherrange + ensage_error || !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_blink")) 
+                    && !me.IsChanneling() 
+                    && Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(March.Name) 
+                    && Utils.SleepCheck("Rearms")) //&& me.Mana >= March.ManaCost + 75 
 				{
 					March.UseAbility(Game.MousePosition);
 				}
 			
-				if ((soulring == null || !soulring.CanBeCasted() || !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name)) && (blink == null || !blink.CanBeCasted() || me.Distance2D(Game.MousePosition) <= 650+ aetherrange + ensage_error || !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_blink")) && (!March.CanBeCasted()  || March.Level <= 0 || !Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(March.Name)) && (Refresh.Level >= 0 && Refresh.CanBeCasted()) && !me.IsChanneling()&& Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(Refresh.Name)  && Utils.SleepCheck("Rearms"))
+				if ((soulring == null || !soulring.CanBeCasted() || !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name)) 
+                    && (blink == null || !blink.CanBeCasted() || me.Distance2D(Game.MousePosition) <= 650+ aetherrange + ensage_error || !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_blink")) 
+                    && (!March.CanBeCasted()  || March.Level <= 0 || !Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(March.Name)) 
+                    && (Refresh.Level >= 0 && Refresh.CanBeCasted()) 
+                    && !me.IsChanneling()&& Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(Refresh.Name) 
+                    && Utils.SleepCheck("Rearms"))
 				{
 					Refresh.UseAbility();
 					if (Refresh.Level == 1)
@@ -585,17 +628,10 @@ namespace Tinker_Air13
 						Utils.Sleep(1510, "Rearms");
 					if (Refresh.Level == 3)
 						Utils.Sleep(760, "Rearms");
-
 				}
-
-				
 				Utils.Sleep(150, "MarchSpam");
 			}
 			
-            
-
-     
-
 			aether = me.FindItem("item_aether_lens");
 			if (aether == null)
 				aetherrange = 0;
@@ -604,16 +640,16 @@ namespace Tinker_Air13
 				
 			if (!Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key))
                 target = null;
-           
-				
-            if ((Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) && (!Menu.Item("Chase").GetValue<KeyBind>().Active) && !Game.IsChatOpen)
+           	
+            if ((Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) 
+                && (!Menu.Item("Chase").GetValue<KeyBind>().Active) 
+                && !Game.IsChatOpen)
             {
                 //target = me.ClosestToMouseTarget(2000);
 				
 				var targetLock =
 					Menu.Item("TargetLock").GetValue<StringList>().SelectedIndex;
 
-					
                 if (Utils.SleepCheck("UpdateTarget")
                     && (target == null || !target.IsValid || !target.IsAlive || !target.IsVisible || (target.IsVisible && targetLock == 0)))
                 {
@@ -621,16 +657,14 @@ namespace Tinker_Air13
                     Utils.Sleep(250, "UpdateTarget");
                 }
 				
-				
-				
-				
-				
-                if (target != null && target.IsAlive && !target.IsIllusion && !me.IsChanneling() && !me.Spellbook.Spells.Any(x => x.IsInAbilityPhase))
+                if (target != null 
+                    && target.IsAlive 
+                    && !target.IsIllusion 
+                    && !me.IsChanneling() 
+                    && !me.Spellbook.Spells.Any(x => x.IsInAbilityPhase))
                 {
                     FindItems();
-					
 
-					
 					if (Utils.SleepCheck("FASTCOMBO"))
 					{
 						uint elsecount = 0;
@@ -638,8 +672,6 @@ namespace Tinker_Air13
 						bool magicimune = (!target.IsMagicImmune() && !target.Modifiers.Any(x => x.Name == "modifier_eul_cyclone"));
 						// soulring -> glimmer -> sheep -> veil-> ghost ->  ->   -> ethereal -> dagon ->  laser -> rocket -> shivas 
 
-						
-						
 						if (soulring != null && soulring.CanBeCasted() 
 							&& target.NetworkPosition.Distance2D(me) <= 2500
 							&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name)  )
@@ -647,13 +679,18 @@ namespace Tinker_Air13
 							soulring.UseAbility();
 						}
 						else
-							elsecount += 1;							
+                        {
+                            elsecount += 1;	
+                        }
+													
 						if (glimmer != null && glimmer.CanBeCasted() && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(glimmer.Name) )
 						{
 							glimmer.UseAbility(me);
 						}
 						else
-							elsecount += 1;
+                        {
+                            elsecount += 1;
+                        }
 							
 						/*
                         if (blink != null && blink.CanBeCasted() && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(blink.Name) && !me.IsChanneling())
@@ -664,11 +701,10 @@ namespace Tinker_Air13
 							&& !me.IsChanneling() && !me.Spellbook.Spells.Any(x => x.IsInAbilityPhase)
 							&& (me.Distance2D(Game.MousePosition) > 650+aetherrange + ensage_error)  
 							&& (!me.Modifiers.Any(y => y.Name == "modifier_bloodseeker_rupture") || (me.Distance2D(Game.MousePosition)>1325 && aetherrange!=0))
-
 							&& (target.NetworkPosition.Distance2D(me) <= 1200 + 650 + ensage_error*2 +aetherrange*2)
 							&& Utils.SleepCheck("Blinks")
 							// && Utils.SleepCheck("Rearms"))
-							)
+                            )
 						{
 							var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1420;
 							var p13 = Game.MousePosition;
@@ -688,8 +724,8 @@ namespace Tinker_Air13
 						
 							blink.UseAbility(p13);
 							Utils.Sleep(200, "Blinks");
-
 						}
+
 						/*
 						if (blink != null && blink.CanBeCasted() && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(blink.Name) && !me.IsChanneling()  &&  me.NetworkPosition.Distance2D(target.NetworkPosition) > 600+aetherrange)// && Utils.SleepCheck("Rearms"))
 						{
@@ -723,10 +759,12 @@ namespace Tinker_Air13
 							blink.UseAbility(p13);
 							//Utils.Sleep(250, "Blinks");
 
-						}*/						
+						}*/		
+                        				
 						else
-							elsecount += 1;
-							
+                        {
+                            elsecount += 1;
+                        }
 							
 						if (!me.IsChanneling() 
 							&& me.CanAttack() 
@@ -743,11 +781,12 @@ namespace Tinker_Air13
 							//Utils.Sleep(250, "attack");
 						}
 						else
-							elsecount += 1;
+                        {
+                            elsecount += 1;
+                        }
 
-							
-							
-						if (target.IsLinkensProtected() && Utils.SleepCheck("combo2"))
+						if (target.IsLinkensProtected() 
+                            && Utils.SleepCheck("combo2"))
 						{
 							if (forcestaff != null && forcestaff.CanBeCasted() )
 								forcestaff.UseAbility(target);	
@@ -781,8 +820,7 @@ namespace Tinker_Air13
 								&& (!EzkillCheck || (target.FindItem("item_manta") != null && target.FindItem("item_manta").CanBeCasted()) || (target.FindItem("item_black_king_bar") != null && target.FindItem("item_black_king_bar").CanBeCasted()) )
 								&& target.NetworkPosition.Distance2D(me) <= 800+aetherrange + ensage_error
 								&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(sheep.Name)
-								&& Utils.SleepCheck("Blinks")
-								)
+								&& Utils.SleepCheck("Blinks"))
 								sheep.UseAbility(target);
 							else
 								elsecount += 1;								/*
@@ -888,6 +926,7 @@ namespace Tinker_Air13
 							}
 							else
 								elsecount += 1;
+
 							if (dagon != null && dagon.CanBeCasted() 
 								&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_dagon")
 								&& (!veil.CanBeCasted() || target.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff") || veil == null | !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)) 
@@ -931,8 +970,7 @@ namespace Tinker_Air13
 								&& (!CanReflectDamage(target) || me.IsMagicImmune())
 								&& target.NetworkPosition.Distance2D(me) <= 650+aetherrange + ensage_error
 								&& !(target.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
-								&& Utils.SleepCheck("Blinks")
-								)
+								&& Utils.SleepCheck("Blinks"))
 								Laser.UseAbility(target);
 							else
 								elsecount += 1;					
@@ -955,8 +993,7 @@ namespace Tinker_Air13
 								&& target.NetworkPosition.Distance2D(me) <= 900 + ensage_error
 								&& !(target.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
 								&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(shiva.Name)
-								&& Utils.SleepCheck("Blinks")
-								)
+								&& Utils.SleepCheck("Blinks"))
 								shiva.UseAbility();
 							else
 								elsecount += 1;
@@ -979,8 +1016,7 @@ namespace Tinker_Air13
 								//&& !OneHitLeft(target)
 								&& Utils.SleepCheck("Rearm") 
 								&& Ready_for_refresh()
-								&& Utils.SleepCheck("Blinks")
-								)
+								&& Utils.SleepCheck("Blinks"))
 							{
 								Refresh.UseAbility();
 								if (Refresh.Level == 1)
@@ -997,8 +1033,7 @@ namespace Tinker_Air13
 									&& me.CanAttack() 
 									&& !target.IsAttackImmune() 
 									&& (!target.Modifiers.Any(y => y.Name == "modifier_nyx_assassin_spiked_carapace") || me.IsMagicImmune())
-									&& Utils.SleepCheck("Rearm")
-									)
+									&& Utils.SleepCheck("Rearm"))
 									{
 										if (me.Distance2D(target) > me.GetAttackRange()-100 )
 											Orbwalking.Orbwalk(target);
@@ -1008,8 +1043,7 @@ namespace Tinker_Air13
 								//else
 								//	me.Move(Game.MousePosition, false);
 							}
-							
-							
+
 							Utils.Sleep(150, "FASTCOMBO");
 						}
                     }
@@ -1018,16 +1052,16 @@ namespace Tinker_Air13
                 {
                     if (!me.IsChanneling() 
 						&& !me.Spellbook.Spells.Any(x => x.IsInAbilityPhase)
-						&& !me.Modifiers.Any(y => y.Name == "modifier_bloodseeker_rupture")
-						)
+						&& !me.Modifiers.Any(y => y.Name == "modifier_bloodseeker_rupture"))
                         me.Move(Game.MousePosition);
                 }
             }
 			
 			
-            if ((Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) && (Menu.Item("Chase").GetValue<KeyBind>().Active) && !Game.IsChatOpen)
+            if ((Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) 
+                && (Menu.Item("Chase").GetValue<KeyBind>().Active) 
+                && !Game.IsChatOpen)
             {
-				
 				var targetLock =
 					Menu.Item("TargetLock").GetValue<StringList>().SelectedIndex;
 
@@ -1071,11 +1105,6 @@ namespace Tinker_Air13
 
         }
 		
-		
-		
-		
-		
-		
 		public static void AD(EventArgs args)
 		{
 			if (!Game.IsInGame || Game.IsPaused || Game.IsWatchingGame)
@@ -1091,16 +1120,11 @@ namespace Tinker_Air13
             //atos = me.FindItem("item_rod_of_atos");
             FindItems();
 
-
-
-			
 			if (aether == null)
 				aetherrange = 0;
 			else
 				aetherrange = 220;
 
-				
-				
 			if (bottle != null && !me.IsInvisible() && !me.IsChanneling() && !me.Spellbook.Spells.Any(x => x.IsInAbilityPhase) && !March.IsInAbilityPhase && me.Modifiers.Any(x => x.Name == "modifier_fountain_aura_buff") && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(bottle.Name) && Utils.SleepCheck("bottle1"))
 			{
 				if(!me.Modifiers.Any(x => x.Name == "modifier_bottle_regeneration") && (me.Health < me.MaximumHealth || me.Mana < me.MaximumMana))
@@ -1155,10 +1179,7 @@ namespace Tinker_Air13
 
 						Utils.Sleep(150, "tplink");
 					}
-					
 
-					
-					
 						//break TP 
 						if (!me.IsChanneling()
 							&& me.Distance2D(e) <= 800 + aetherrange + ensage_error
@@ -1368,10 +1389,7 @@ namespace Tinker_Air13
 						Utils.Sleep(200, e.Handle.ToString());
 					}
 
-					
-				
-					
-					
+
 					//break channel by cyclone if not hex
 					if (!me.IsChanneling()
 						&& cyclone != null 
@@ -1610,11 +1628,6 @@ namespace Tinker_Air13
 										Utils.Sleep(150, "Ghost");
 									}*/
 					
-					
-					
-					
-					
-					
 
 					//ghost dodge close enemy
 					if (
@@ -1729,10 +1742,6 @@ namespace Tinker_Air13
 						Utils.Sleep(150, "Ghost");
 					}
 
-					
-					
-
-					
 
 					else if ( //break special (1 hex, 2 cyclone)
 									!me.IsChanneling()
@@ -1784,11 +1793,8 @@ namespace Tinker_Air13
 				if (Menu.Item("autoKillsteal").GetValue<bool>() 
 					&& me.IsAlive 
 					&& me.IsVisible 
-					&& (Menu.Item("Chase").GetValue<KeyBind>().Active || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key))
-					 
-					)
+					&& (Menu.Item("Chase").GetValue<KeyBind>().Active || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)))
 				{
-				
 					if (e.Health < factdamage(e)
 						&& me.Mana >= manafactdamage(e)
 						&& (!CanReflectDamage(e) || me.IsMagicImmune())
@@ -1806,10 +1812,7 @@ namespace Tinker_Air13
 						&& !me.IsHexed() 
 						&& !me.Modifiers.Any(y => y.Name == "modifier_doom_bringer_doom") 
 						&& !me.Modifiers.Any(y => y.Name == "modifier_riki_smoke_screen")
-						&& !me.Modifiers.Any(y => y.Name == "modifier_disruptor_static_storm")
-
-
-						)
+						&& !me.Modifiers.Any(y => y.Name == "modifier_disruptor_static_storm"))
 						{
 							if (Utils.SleepCheck("AUTOCOMBO") && !me.IsChanneling())
 							{
@@ -1836,8 +1839,8 @@ namespace Tinker_Air13
 									&& e.NetworkPosition.Distance2D(me) < 2500
 									&& magicimune  
 									&& !OneHitLeft(e)
-									&& (((veil == null || !veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff")  /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/) && e.NetworkPosition.Distance2D(me) <= 1500+aetherrange) || ((e.NetworkPosition.Distance2D(me) > 1500+aetherrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*spellamplymult*lensmult)))   )
-									&& (((ethereal == null || (ethereal!=null && !ethereal.CanBeCasted()) || IsCasted(ethereal) /*|| e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal")*/ /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/)&& e.NetworkPosition.Distance2D(me) <= 800+aetherrange)|| ((e.NetworkPosition.Distance2D(me) > 800+aetherrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*spellamplymult*lensmult)))   )
+									&& (((veil == null || !veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff")  /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/) && e.NetworkPosition.Distance2D(me) <= 1500+aetherrange) || ((e.NetworkPosition.Distance2D(me) > 1500+aetherrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*(spellamplymult+lensmult))))   )
+									&& (((ethereal == null || (ethereal!=null && !ethereal.CanBeCasted()) || IsCasted(ethereal) /*|| e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal")*/ /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/)&& e.NetworkPosition.Distance2D(me) <= 800+aetherrange)|| ((e.NetworkPosition.Distance2D(me) > 800+aetherrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*(spellamplymult+lensmult))))   )
 																		
 									)
 									soulring.UseAbility();
@@ -1849,8 +1852,7 @@ namespace Tinker_Air13
 									&& e.NetworkPosition.Distance2D(me) <= 1500+aetherrange + ensage_error
 									&& !OneHitLeft(e)
 									&& !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
-									&& !e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff")
-									)
+									&& !e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff"))
 								{
 									if (me.Distance2D(e)>1000 + aetherrange + ensage_error)
 									{
@@ -2124,28 +2126,22 @@ namespace Tinker_Air13
 				}
 			}
 			
-			
-			
 
-			
-			
-			
-			
 			
 			if (Menu.Item("Rocket Range").GetValue<bool>())
 			{
 				if(rangedisplay_rocket == null)
 				{
-				rangedisplay_rocket = me.AddParticleEffect(@"particles\ui_mouseactions\drag_selected_ring.vpcf");
-				range_rocket = 2500 + 300;
-				rangedisplay_rocket.SetControlPoint(1, new Vector3(255, 255, 0));
-				rangedisplay_rocket.SetControlPoint(2, new Vector3(range_rocket, 255, 0));
+				    rangedisplay_rocket = me.AddParticleEffect(@"particles\ui_mouseactions\drag_selected_ring.vpcf");
+				    range_rocket = 2500 + 300;
+				    rangedisplay_rocket.SetControlPoint(1, new Vector3(255, 255, 0));
+				    rangedisplay_rocket.SetControlPoint(2, new Vector3(range_rocket, 255, 0));
 				}
 			}
 			else if (rangedisplay_rocket!=null)
 			{
-			rangedisplay_rocket.Dispose();
-			rangedisplay_rocket = null;
+			    rangedisplay_rocket.Dispose();
+			    rangedisplay_rocket = null;
 			}
 			
 			
@@ -2154,11 +2150,11 @@ namespace Tinker_Air13
 			{
 				if(rangedisplay_laser == null)
 				{
-				rangedisplay_laser = me.AddParticleEffect(@"particles\ui_mouseactions\drag_selected_ring.vpcf");
-				range_laser = 650 + aetherrange +130;
-				//range_laser = (int)me.Spellbook.SpellQ.GetCastRange();
-				rangedisplay_laser.SetControlPoint(1, new Vector3(0, 150, 255));
-				rangedisplay_laser.SetControlPoint(2, new Vector3(range_laser, 255, 0));
+				    rangedisplay_laser = me.AddParticleEffect(@"particles\ui_mouseactions\drag_selected_ring.vpcf");
+				    range_laser = 650 + aetherrange +130;
+				    //range_laser = (int)me.Spellbook.SpellQ.GetCastRange();
+				    rangedisplay_laser.SetControlPoint(1, new Vector3(0, 150, 255));
+				    rangedisplay_laser.SetControlPoint(2, new Vector3(range_laser, 255, 0));
 				}
 				if (range_laser != 650 + aetherrange +130)
 				{
@@ -2172,8 +2168,8 @@ namespace Tinker_Air13
 			}
 			else if (rangedisplay_laser!=null)
 			{
-			rangedisplay_laser.Dispose();
-			rangedisplay_laser = null;
+			    rangedisplay_laser.Dispose();
+			    rangedisplay_laser = null;
 			}
 			
 			
@@ -2267,11 +2263,7 @@ namespace Tinker_Air13
 				
         }
 
-		
-		
 
-		
-		
        public static Vector3 FindVector(Vector3 first, double ret, float distance)
         {
             var retVector = new Vector3(first.X + (float) Math.Cos(Utils.DegreeToRadian(ret)) * distance,
@@ -2280,11 +2272,6 @@ namespace Tinker_Air13
             return retVector;
         }		
 		
-		
-		
-		
-		
-
 
         static void FindItems()
         {
@@ -2308,13 +2295,13 @@ namespace Tinker_Air13
             veil = me.FindItem("item_veil_of_discord");
             travel = me.Inventory.Items.FirstOrDefault(item => item.Name.Contains("item_travel_boots"));
         }
+
         static Vector2 HeroPositionOnScreen(Hero x)
         {
             Vector2 PicPosition;
             PicPosition = new Vector2(HUDInfo.GetHPbarPosition(x).X - 1, HUDInfo.GetHPbarPosition(x).Y - 40);
             return PicPosition;
         }
-
 
         static bool Ready_for_refresh()
         {
@@ -2331,8 +2318,6 @@ namespace Tinker_Air13
             else
                 return true;
         }
-		
-		
 
         static bool CanReflectDamage(Hero x)
         {
@@ -2357,7 +2342,6 @@ namespace Tinker_Air13
             else
                 return false;
         } 
-		
 		
         private static bool IsCasted(Ability ability)
         {
@@ -2390,14 +2374,7 @@ namespace Tinker_Air13
                 return false;
         }
 		
-		
-		
-		
-		
-		
-		
 
-		
 		static bool EZkill(Hero en)
         {
             if (en != null && en.IsAlive && en.IsValid)
@@ -2421,10 +2398,11 @@ namespace Tinker_Air13
 					lensmult = 1.05;
 				else
 					lensmult = 1;
+                
 					
 				
 
-                allmult = etherealmult * veilmult * lensmult * spellamplymult;
+                allmult = etherealmult * veilmult * (lensmult + spellamplymult);
 
                 if (dagon != null && dagon.CanBeCasted() && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_dagon"))
                     alldagondmg = (int)(en.DamageTaken(dagondamage[dagon.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*allmult);
@@ -2438,7 +2416,7 @@ namespace Tinker_Air13
 					
 					
 				if (Laser!=null && Laser.Level>0 && Laser.CanBeCasted())
-					alllaserdmg = (int)(en.DamageTaken((int)(laser_damage[Laser.Level - 1]), DamageType.Pure, me, false, 0, 0, 0)* lensmult * spellamplymult);
+					alllaserdmg = (int)(en.DamageTaken((int)(laser_damage[Laser.Level - 1]), DamageType.Pure, me, false, 0, 0, 0)* (lensmult + spellamplymult));
 				else
 					alllaserdmg = 0;
 				
@@ -2476,13 +2454,7 @@ namespace Tinker_Air13
                 return false;
         }
 		
-		
-		
-		
-		
-		
-		
-		
+
 		static int manaprocast()
         {
             int manalaser = 0, manarocket = 0, manarearm = 0, manadagon = 0, manaveil = 0, manasheep = 0, manaethereal = 0, manashiva = 0, manasoulring = 0;
@@ -2675,9 +2647,12 @@ namespace Tinker_Air13
 				if (me.FindItem("item_aether_lens")!=null)
 					lensmult = 1.05;
 				else
-					lensmult = 1;					
-					
-                allmult = etherealmult * veilmult * lensmult * spellamplymult;
+					lensmult = 1;
+                if (me.Level >= 15)
+                    spellamplymult = spellamplymult + 0.04;
+
+
+                allmult = etherealmult * veilmult * (lensmult + spellamplymult);
 
                 if (dagon != null && dagon.CanBeCasted() /*&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_dagon")*/)
 				{
@@ -2701,7 +2676,7 @@ namespace Tinker_Air13
 					
 					
 				if (Laser!=null && Laser.Level>0 && Laser.CanBeCasted())
-					alllaserdmg = (int)(en.DamageTaken((int)(laser_damage[Laser.Level - 1]), DamageType.Pure, me, false, 0, 0, 0)* lensmult * spellamplymult);
+					alllaserdmg = (int)(en.DamageTaken((int)(laser_damage[Laser.Level - 1]), DamageType.Pure, me, false, 0, 0, 0)* (lensmult + spellamplymult));
 				else
 					alllaserdmg = 0;
 				
@@ -2823,8 +2798,6 @@ namespace Tinker_Air13
             else 
                 return 999;
 		
-		
-		
 		}
 
 	
@@ -2849,6 +2822,7 @@ namespace Tinker_Air13
 			else 
                 return 999;
 		}
+
 		static int OnlyRktCountDmg(Hero en)
 		{
             if (!en.IsMagicImmune() && !en.IsInvul())
@@ -2858,7 +2832,6 @@ namespace Tinker_Air13
 			else 
                 return 999;
 		}
-		
 		
 		static int HitCount(Hero en)
 		{
@@ -2942,6 +2915,7 @@ namespace Tinker_Air13
 					//Drawing.DrawText(manafactdamage(targetInf).ToString(), start3+30, new Vector2(21, 21), (me.Mana > manafactdamage(targetInf)) ? Color.Aqua : Color.Blue, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
 
 				}
+
 				if (Menu.Item("HitCounter").GetValue<bool>())
 				{	
 					var hitcounter = HitCount(targetInf);
@@ -2950,6 +2924,7 @@ namespace Tinker_Air13
 					Drawing.DrawText(hitcounter.ToString()+" hits", starthits, new Vector2(21, 21), Color.Black, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
 					Drawing.DrawText(hitcounter.ToString()+" hits", starthit, new Vector2(21, 21), (hitcounter<=1)?Color.Lime:Color.White, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
 				}
+
 				if (Menu.Item("RocketCounter").GetValue<bool>() && Rocket.Level>0)
 				{	
 					var startrocket = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(107, HUDInfo.GetHpBarSizeY(targetInf) + 6);
@@ -2962,7 +2937,6 @@ namespace Tinker_Air13
 						Drawing.DrawText("          (x"+OnlyRktCount(targetInf).ToString()+") "/*+OnlyRktCountDmg(targetInf)*/, startrocket, new Vector2(21, 21), (Math.Ceiling((me.Mana-manaonerocket())/(manaonerocket()+rearm_mana[Refresh.Level - 1]))>=OnlyRktCount(targetInf))?Color.Lime:Color.Red, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
 					}
 				}
-				
 			}  
 			
 			if (Menu.Item("Calculator").GetValue<bool>())
@@ -2977,12 +2951,16 @@ namespace Tinker_Air13
 				Drawing.DrawText("x1", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -240 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
 				Drawing.DrawText("x1", new Vector2(HUDInfo.ScreenSizeX() / 2-240 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);			
 				Drawing.DrawText("x2", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-240 + coordX, HUDInfo.ScreenSizeY() / 2 + 285 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText("x2", new Vector2(HUDInfo.ScreenSizeX() / 2-240 + coordX, HUDInfo.ScreenSizeY() / 2 + 285 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);			
-				Drawing.DrawText("x3", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-240 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText("x3", new Vector2(HUDInfo.ScreenSizeX() / 2-240 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);			
-						
+				Drawing.DrawText("x2", new Vector2(HUDInfo.ScreenSizeX() / 2-240 + coordX, HUDInfo.ScreenSizeY() / 2 + 285 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+                Drawing.DrawText("x3", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText("x3", new Vector2(HUDInfo.ScreenSizeX() / 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
 
-				Drawing.DrawText("dmg", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -200 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText("laser dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText("laser dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 360 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+                Drawing.DrawText(me.Level.ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText(me.Level.ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 360 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+
+                Drawing.DrawText("dmg", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -200 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
 				Drawing.DrawText("dmg", new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
 				
 				Drawing.DrawText(averagedamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -200 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
@@ -3099,10 +3077,7 @@ namespace Tinker_Air13
 					Drawing.DrawText(manaonerocket().ToString()+" ("+(-manaonerocket()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + coordYr), new Vector2(30, 200), (me.Mana>manaonerocket())? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
 				}
 			}
-				
-				
-         
-			
+
 			if (Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key) && !Game.IsChatOpen)
 			{
                 //Drawing.DrawText(Menu.Item("Chase").GetValue<KeyBind>().Active == true ? "Chasing" : "Comboing", new Vector2(HUDInfo.ScreenSizeX() / 2 +2, HUDInfo.ScreenSizeY() / 2 + 160 +2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
@@ -3111,11 +3086,13 @@ namespace Tinker_Air13
                 Drawing.DrawText(" ON!", new Vector2(HUDInfo.ScreenSizeX() / 2+150, HUDInfo.ScreenSizeY() / 2 + 235), new Vector2(30, 200), Menu.Item("Chase").GetValue<KeyBind>().Active == true ? Color.Red : Color.LimeGreen, FontFlags.AntiAlias);
 			
 			}
+
 			if (Game.IsKeyDown(Menu.Item("Rocket Spam Key").GetValue<KeyBind>().Key) && !Game.IsChatOpen)
 			{
 				Drawing.DrawText("Rocket Spam!", new Vector2(HUDInfo.ScreenSizeX() / 2 +2, HUDInfo.ScreenSizeY() / 2 + 185 +2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
 				Drawing.DrawText("Rocket Spam!", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 185), new Vector2(30, 200), Color.Yellow, FontFlags.AntiAlias);
 			}
+
 			if (Game.IsKeyDown(Menu.Item("March Spam Key").GetValue<KeyBind>().Key) && !Game.IsChatOpen)
 			{
 				Drawing.DrawText("March Spam!", new Vector2(HUDInfo.ScreenSizeX() / 2 +2, HUDInfo.ScreenSizeY() / 2 + 210 +2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
@@ -3134,10 +3111,88 @@ namespace Tinker_Air13
 				Drawing.DrawText((Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? "KS: on" : "KS: off", new Vector2(HUDInfo.ScreenSizeX() / 2 +2, HUDInfo.ScreenSizeY() / 2 + 260 +2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
 				Drawing.DrawText((Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? "KS: on" : "KS: off", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 260), new Vector2(30, 200),(Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);
 			}
-			
-        
 		}
-		
-		
+
+        internal class TinkerCords
+        {
+            public static readonly Vector3[]
+            SafePos =
+            {
+            new Vector3(-7305, -5016, 384),
+            new Vector3(-7328, -4768, 384),
+            new Vector3(-7264, -4505, 384),
+            new Vector3(-7136, -4384, 384),
+            new Vector3(-7072, -1120, 384),
+            new Vector3(-7072, -672, 384),
+            new Vector3(-7200, -288, 384),
+            new Vector3(-6880, 288, 384),
+            new Vector3(-6944, 1568, 384),
+            new Vector3(-6688, 3488, 384),
+            new Vector3(-6752, 3616, 384),
+            new Vector3(-6816, 3744, 384),
+            new Vector3(-6816, 4448, 384),
+            new Vector3(-5152, 5088, 384),
+            new Vector3(-3936, 5536, 384),
+            new Vector3(-5152, 6624, 384),
+            new Vector3(-3680, 6624, 384),
+            new Vector3(-2720, 6752, 384),
+            new Vector3(-2720, 5536, 384),
+            new Vector3(-1632, 6688, 384),
+            new Vector3(-1056, 6752, 384),
+            new Vector3(-736, 6816, 384),
+            new Vector3(-992, 5536, 384),
+            new Vector3(-1568, 5536, 384),
+            new Vector3(608, 7008, 384),
+            new Vector3(1632, 6752, 256),
+            new Vector3(2336, 7136, 384),
+            new Vector3(1568, 3040, 384),
+            new Vector3(1824, 3296, 384),
+            new Vector3(-2976, 480, 384),
+            new Vector3(736, 1056, 256),
+            new Vector3(928, 1248, 256),
+            new Vector3(928, 1696, 256),
+            new Vector3(2784, 992, 256),
+            new Vector3(-2656, -1440, 256),
+            new Vector3(-2016, -2464, 256),
+            new Vector3(-2394, -3110, 256),
+            new Vector3(-1568, -3232, 256),
+            new Vector3(-2336, -4704, 256),
+            new Vector3(-416, -7072, 384),
+            new Vector3(2336, -5664, 384),
+            new Vector3(2464, -5728, 384),
+            new Vector3(2848, -5664, 384),
+            new Vector3(2400, -6817, 384),
+            new Vector3(3040, -6624, 384),
+            new Vector3(4256, -6624, 384),
+            new Vector3(4192, -6880, 384),
+            new Vector3(5024, -5408, 384),
+            new Vector3(5856, -6240, 384),
+            new Vector3(6304, -6112, 384),
+            new Vector3(6944, -5472, 384),
+            new Vector3(7328, -5024, 384),
+            new Vector3(7200, -3296, 384),
+            new Vector3(7200, -2272, 384),
+            new Vector3(6944, -992, 384),
+            new Vector3(6816, -224, 384),
+            new Vector3(7200, 480, 384),
+            new Vector3(7584, 2080, 256),
+            new Vector3(7456, 2784, 384),
+            new Vector3(5344, 2528, 384),
+            new Vector3(7200, 5536, 384),
+            new Vector3(4192, 6944, 384),
+            new Vector3(5472, 6752, 384),
+            new Vector3(-6041, -6883, 384),
+            new Vector3(-5728, -6816, 384),
+            new Vector3(-5408, -7008, 384),
+            new Vector3(-5088, -7072, 384),
+            new Vector3(-4832, -7072, 384),
+            new Vector3(-3744, -7200, 384)
+        };
+            public static readonly Vector3[]
+            PanicPos =
+            {
+
+        };
+        }
     }
 }
