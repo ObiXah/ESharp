@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Tinker Air13")]
+[assembly: AssemblyTitle("Tinker ObiXah")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Tinker Air13")]
+[assembly: AssemblyProduct("Tinker ObiXah")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("7dab40b7-d62a-4ad7-b65f-46ba18f54b7b")]
+[assembly: Guid("7dab40b7-d62a-4ad7-b65f-46bc18f54b7b")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.3.0.2")]
-[assembly: AssemblyFileVersion("1.3.0.2")]
+[assembly: AssemblyVersion("1.3.0.3")]
+[assembly: AssemblyFileVersion("1.3.0.3")]

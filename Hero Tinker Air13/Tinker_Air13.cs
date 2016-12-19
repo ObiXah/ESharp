@@ -2010,10 +2010,7 @@ namespace Tinker_Air13
 				}  
 				
 			}
-			
 
-			
-			
 			if (Menu.Item("Show Target Effect").GetValue<bool>())
 			{
 				if (target != null && target.IsValid && !target.IsIllusion && target.IsAlive && target.IsVisible && me.Distance2D(target.Position) < 2000)
@@ -2095,10 +2092,10 @@ namespace Tinker_Air13
 
 			}
 			else if (rangedisplay_dagger!=null)
-				{
-				rangedisplay_dagger.Dispose();
-				rangedisplay_dagger = null;
-				}
+			{
+			    rangedisplay_dagger.Dispose();
+			    rangedisplay_dagger = null;
+			}
 			
 			
 			
@@ -2118,10 +2115,10 @@ namespace Tinker_Air13
 					).ToList();
 					
 					foreach (var unit in units)
-						{
-						HandleEffectR(unit);
-						HandleEffectD(unit);
-						}
+					{
+					    HandleEffectR(unit);
+					    HandleEffectD(unit);
+					}
 
 				}
 			}
@@ -2171,13 +2168,7 @@ namespace Tinker_Air13
 			    rangedisplay_laser.Dispose();
 			    rangedisplay_laser = null;
 			}
-			
-			
-			
-			
 		}
-		
-		
 		
         private static void HandleEffectR(Unit unit)
         {
@@ -2258,9 +2249,7 @@ namespace Tinker_Air13
 			{
 			   effect2.Dispose();
 			   effect2 = null;
-			}
-			
-				
+			}	
         }
 
 
@@ -2275,7 +2264,7 @@ namespace Tinker_Air13
 
         static void FindItems()
         {
-            //Skils
+            //Skills
             Laser = me.Spellbook.SpellQ;
             Rocket = me.Spellbook.SpellW;
             Refresh = me.Spellbook.SpellR;
@@ -2386,7 +2375,9 @@ namespace Tinker_Air13
 				spellamplymult = 1 + (me.TotalIntelligence/16/100);
 
 				
-                if (((ethereal != null && ethereal.CanBeCasted()) || (ethereal != null && IsCasted(ethereal))) && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)&& !en.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal"))
+                if (((ethereal != null && ethereal.CanBeCasted()) || (ethereal != null && IsCasted(ethereal))) 
+                    && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name) 
+                    && !en.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal"))
 					etherealmult = 1.4;
 				else
 					etherealmult = 1;

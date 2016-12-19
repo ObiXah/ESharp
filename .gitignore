@@ -45,3 +45,17 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+*.suo
+Hero Tinker Air13/App.config
+*.dll
+Hero Tinker Air13/bin/Debug/Ensage.Common.pdb
+*.config
+Hero Tinker Air13/bin/Release/Ensage.Common.pdb
+*.exe
+Hero Tinker Air13/bin/Debug/Tinker_Air13.pdb
+*.manifest
+Hero Tinker Air13/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+*.txt
+*.cache
+Hero Tinker Air13/obj/Debug/Tinker_Air13.pdb
+*.cs
