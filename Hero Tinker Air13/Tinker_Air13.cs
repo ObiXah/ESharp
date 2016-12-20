@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Ensage;
 using Ensage.Common.Extensions;
+using Ensage.Common.AbilityInfo;
 using Ensage.Common;
 using Ensage.Common.Menu;
 using SharpDX;
@@ -24,8 +25,8 @@ namespace Tinker_Air13
 		private static readonly Dictionary<Unit, ParticleEffect> VisibleUnit3 = new Dictionary<Unit, ParticleEffect>();
 		private static readonly Dictionary<Unit, ParticleEffect> VisibleUnit4 = new Dictionary<Unit, ParticleEffect>();
 
+        private static int count = 0;
 
-		
         private static readonly Menu Menu = new Menu("Tinker Air13", "Tinker Air13", true, "npc_dota_hero_tinker", true);
         private static readonly Menu _skills = new Menu("Skills", "Skills");
         private static readonly Menu _items = new Menu("Items", "Items");
@@ -2874,7 +2875,14 @@ namespace Tinker_Air13
                 return;
             if (me.ClassID != ClassID.CDOTA_Unit_Hero_Tinker)
                 return;
-				
+
+            //GetRocketDamage();
+            //Console.WriteLine(GetLaserDamage().ToString());
+            //var rocket = me.Spellbook.SpellW;
+            //Console.WriteLine("Console Test");
+            //Console.WriteLine(rocket.AbilitySpecialData.First(x => x.Name == "#AbilityDamage").GetValue(rocket.Level - 1).ToString());
+
+
             var targetInf = me.ClosestToMouseTarget(2000);
             FindItems();
             if (targetInf != null && targetInf.IsValid && !targetInf.IsIllusion && targetInf.IsAlive && targetInf.IsVisible)
@@ -2948,8 +2956,18 @@ namespace Tinker_Air13
 
                 Drawing.DrawText("laser dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
                 Drawing.DrawText("laser dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 360 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
-                Drawing.DrawText(me.Level.ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-                Drawing.DrawText(me.Level.ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 360 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+                Drawing.DrawText(GetLaserDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText(GetLaserDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 360 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+
+                Drawing.DrawText("rocket dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText("rocket dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+                Drawing.DrawText(GetRocketDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText(GetRocketDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+
+                Drawing.DrawText("dagon dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText("dagon dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+                Drawing.DrawText(GetDagonDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText(GetDagonDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
 
                 Drawing.DrawText("dmg", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -200 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
 				Drawing.DrawText("dmg", new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
@@ -3103,6 +3121,108 @@ namespace Tinker_Air13
 				Drawing.DrawText((Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? "KS: on" : "KS: off", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 260), new Vector2(30, 200),(Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);
 			}
 		}
+
+        public static float GetLaserDamage()
+        {
+
+            var laserDamage = 0.0f;
+            var totalSpellAmp = 0.0f;
+
+            var laser = me.Spellbook.SpellQ;
+            if (laser.Level > 0)
+            {
+                laserDamage += laser.AbilitySpecialData.First(x => x.Name == "laser_damage").GetValue(laser.Level - 1);
+            }
+
+            var talent25 = me.Spellbook.Spells.First(x => x.Name == "special_bonus_unique_tinker");
+            if (talent25.Level > 0)
+            {
+                laserDamage += talent25.AbilitySpecialData.First(x => x.Name == "value").Value;
+            }
+
+            //Spell Amplification Calculation (addition)
+            var talent15 = me.Spellbook.Spells.First(x => x.Name == "special_bonus_spell_amplify_4");
+            if (talent15.Level > 0)
+            {
+                totalSpellAmp += (talent15.AbilitySpecialData.First(x => x.Name == "value").Value) / 100.0f;
+            }
+
+            var aetherLens = me.Inventory.Items.FirstOrDefault(x => x.ClassID == ClassID.CDOTA_Item_Aether_Lens);
+            if (aetherLens != null)
+            {
+                totalSpellAmp += (aetherLens.AbilitySpecialData.First(x => x.Name == "spell_amp").Value) / 100.0f;
+            }
+
+            totalSpellAmp += (100.0f + me.TotalIntelligence / 16.0f) / 100.0f;
+
+            laserDamage *= totalSpellAmp;
+
+            return laserDamage;
+        }
+
+        public static float GetRocketDamage()
+        {
+            var rocketDamage = 0.0f;
+            var totalSpellAmp = 0.0f;
+
+            var rocket = me.Spellbook.SpellW;
+
+            if (rocket.Level > 0)
+            {
+                rocketDamage += rocket.AbilitySpecialData.First(x => x.Name == "#AbilityDamage").GetValue(rocket.Level - 1);
+            }
+
+            //Spell Amplification Calculation (addition)
+            var talent15 = me.Spellbook.Spells.First(x => x.Name == "special_bonus_spell_amplify_4");
+            if (talent15.Level > 0)
+            {
+                totalSpellAmp += (talent15.AbilitySpecialData.First(x => x.Name == "value").Value) / 100.0f;
+            }
+
+            var aetherLens = me.Inventory.Items.FirstOrDefault(x => x.ClassID == ClassID.CDOTA_Item_Aether_Lens);
+            if (aetherLens != null)
+            {
+                totalSpellAmp += (aetherLens.AbilitySpecialData.First(x => x.Name == "spell_amp").Value) / 100.0f;
+            }
+
+            totalSpellAmp += (100.0f + me.TotalIntelligence / 16.0f) / 100.0f;
+
+            rocketDamage *= totalSpellAmp;
+
+            return rocketDamage;
+        }
+
+        public static float GetDagonDamage()
+        {
+            var dagonDamage = 0.0f;
+            var totalSpellAmp = 0.0f;
+
+            var dagon = me.Inventory.Items.FirstOrDefault(x => x.Name == "item_dagon");
+
+            if (dagon != null)
+            {
+                dagonDamage += (dagon.AbilitySpecialData.FirstOrDefault(x => x.Name == "damage").GetValue(dagon.Level - 1));
+            }
+
+            //Spell Amplification Calculation (addition)
+            var talent15 = me.Spellbook.Spells.First(x => x.Name == "special_bonus_spell_amplify_4");
+            if (talent15.Level > 0)
+            {
+                totalSpellAmp += (talent15.AbilitySpecialData.First(x => x.Name == "value").Value) / 100.0f;
+            }
+
+            var aetherLens = me.Inventory.Items.FirstOrDefault(x => x.ClassID == ClassID.CDOTA_Item_Aether_Lens);
+            if (aetherLens != null)
+            {
+                totalSpellAmp += (aetherLens.AbilitySpecialData.First(x => x.Name == "spell_amp").Value) / 100.0f;
+            }
+
+            totalSpellAmp += (100.0f + me.TotalIntelligence / 16.0f) / 100.0f;
+
+            dagonDamage *= totalSpellAmp;
+
+            return dagonDamage;
+        }
 
         internal class TinkerCords
         {

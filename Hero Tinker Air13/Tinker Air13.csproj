@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Tinker_Air13</RootNamespace>
     <AssemblyName>Tinker_Air13</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <PreBuildEvent />
@@ -44,26 +44,17 @@
     <Compile Include="Tinker_Air13.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="clipper_library">
-      <HintPath>C:\Program Files (x86)\PlaySharp\References\clipper_library.dll</HintPath>
-    </Reference>
     <Reference Include="Ensage">
-      <HintPath>C:\Program Files (x86)\PlaySharp\References\Ensage.dll</HintPath>
+      <HintPath>C:\PS\References\Ensage.dll</HintPath>
     </Reference>
     <Reference Include="Ensage.Common">
-      <HintPath>C:\Program Files (x86)\PlaySharp\References\Ensage.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="Ensage.Menu">
-      <HintPath>C:\PlaySharp2\System\Ensage.Menu.dll</HintPath>
-    </Reference>
-    <Reference Include="HotKeyChanger">
-      <HintPath>C:\PlaySharp2\System\HotKeyChanger.dll</HintPath>
+      <HintPath>C:\PS\References\Ensage.Common.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX">
-      <HintPath>C:\Program Files (x86)\PlaySharp\References\SharpDX.dll</HintPath>
+      <HintPath>C:\PS\References\SharpDX.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX.Direct3D9">
-      <HintPath>C:\Program Files (x86)\PlaySharp\References\SharpDX.Direct3D9.dll</HintPath>
+      <HintPath>C:\PS\References\SharpDX.Direct3D9.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />

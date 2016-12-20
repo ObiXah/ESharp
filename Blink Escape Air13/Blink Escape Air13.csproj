@@ -48,19 +48,25 @@
       <HintPath>C:\PlaySharp2\System\clipper_library.dll</HintPath>
     </Reference>
     <Reference Include="Ensage">
-      <HintPath>C:\PlaySharp2\System\Ensage.dll</HintPath>
+      <HintPath>..\..\..\..\..\PS\References\Ensage.dll</HintPath>
     </Reference>
     <Reference Include="Ensage.Common">
-      <HintPath>C:\PlaySharp2\System\Ensage.Common.dll</HintPath>
+      <HintPath>..\..\..\..\..\PS\References\Ensage.Common.dll</HintPath>
     </Reference>
     <Reference Include="Ensage.Menu">
       <HintPath>C:\PlaySharp2\System\Ensage.Menu.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\..\PS\References\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX">
-      <HintPath>C:\PlaySharp2\System\SharpDX.dll</HintPath>
+      <HintPath>..\..\..\..\..\PS\References\SharpDX.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX.Direct3D9">
-      <HintPath>C:\PlaySharp2\System\SharpDX.Direct3D9.dll</HintPath>
+      <HintPath>..\..\..\..\..\PS\References\SharpDX.Direct3D9.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.XInput">
+      <HintPath>..\..\..\..\..\PS\References\SharpDX.XInput.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
