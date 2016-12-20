@@ -2530,91 +2530,6 @@ namespace Tinker_Air13
               
         }	
 
-		
-		
-		static int averagedamage()
-        {
-      
-			int etherealdamage1 = (int)(((me.TotalIntelligence * 2) + 75));
-            int alletherealdmg1 = 0, alldagondmg1 = 0, alllaserdmg1 = 0, allrocketdmg1 = 0, allshivadmg1 = 0;
-			int averagedamage1 = 0; 
-			double etherealmult1 = 1, veilmult1 = 1, lensmult1 = 1, spellamplymult1 = 1;
-				
-			spellamplymult1 = 1 + (me.TotalIntelligence/16/100);
-
-			if (ethereal != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name))
-				etherealmult1 = 1.4;
-			else
-				etherealmult1 = 1;
-			if (veil != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name))
-				veilmult1 = 1.25;
-			else
-				veilmult1 = 1;
-			if (me.FindItem("item_aether_lens")!=null)
-				lensmult1 = 1.05;
-			else
-				lensmult1 = 1;
-				
-			var allmultavg = etherealmult1 * veilmult1 * lensmult1 * spellamplymult1;
-			
-			if (dagon != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_dagon"))
-				alldagondmg1 = (int)(dagondamage[dagon.Level - 1]*0.75*allmultavg);
-			else 
-				alldagondmg1 = 0;
-			
-			if (ethereal != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name))
-				alletherealdmg1 = (int)(etherealdamage1*0.75*allmultavg);
-			else
-				alletherealdmg1 = 0;
-				
-			if (shiva != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(shiva.Name))
-				allshivadmg1 = (int)(200*0.75*allmultavg);
-			else
-				allshivadmg1 = 0;
-					
-				
-			if (Laser!=null && Laser.Level>0)
-				alllaserdmg1 = (int)(laser_damage[Laser.Level - 1]*lensmult1*spellamplymult1);
-			else
-				alllaserdmg1 = 0;
-			
-			if (Rocket != null && Rocket.Level>0)
-				allrocketdmg1 = (int)(rocket_damage[Rocket.Level - 1]*0.75*allmultavg);
-			else
-				allrocketdmg1 = 0;
-			
-			
-			averagedamage1 = alletherealdmg1+alldagondmg1+allshivadmg1+allrocketdmg1+alllaserdmg1;			
-			
-			return averagedamage1;
-              
-        }	 
-
-		static int onerocketdamage()
-        {
-            int allrocketdmg1 = 0;
-			double lensmult1 = 1, spellamplymult1 = 1;
-				
-			spellamplymult1 = 1 + (me.TotalIntelligence/16/100);
-
-			if (me.FindItem("item_aether_lens")!=null)
-				lensmult1 = 1.05;
-			else
-				lensmult1 = 1;
-				
-			var allmultrkt = lensmult1 * spellamplymult1;
-			
-			if (Rocket != null && Rocket.Level>0)
-				allrocketdmg1 = (int)(rocket_damage[Rocket.Level - 1]*0.75*allmultrkt);
-			else
-				allrocketdmg1 = 0;
-						
-			return allrocketdmg1;
-              
-        }	
-		
-		
-		
 		static int factdamage(Hero en)
         {
             if (en != null && en.IsAlive && en.IsValid)
@@ -2773,10 +2688,9 @@ namespace Tinker_Air13
               
         }
 
-
         static int ProcastCounter(Hero en)
 		{
-			var maxprocastdmgstatic = (en.DamageTaken(averagedamage()*100/75, DamageType.Magical, me, false, 0, 0, 0));
+			var maxprocastdmgstatic = (en.DamageTaken(GetComboDamage()*100/75, DamageType.Magical, me, false, 0, 0, 0));
 			var cleardmg = me.BonusDamage + me.DamageAverage;
 			var hitDmg = en.DamageTaken(cleardmg, DamageType.Physical, me);
             if (!en.IsMagicImmune() && !en.IsInvul())
@@ -2785,23 +2699,19 @@ namespace Tinker_Air13
                     return (int)Math.Ceiling(en.Health / maxprocastdmgstatic);
 				else
 					return (int)Math.Ceiling(en.Health / maxprocastdmgstatic - hitDmg/en.Health );
-
             }
             else 
                 return 999;
-		
 		}
 
-	
-		
 		static int RktCount(Hero en)
 		{
             if (!en.IsMagicImmune() && !en.IsInvul())
 			{
-				if (((int)((en.Health - procastdamage)/onerocketdamage()))<=0)
+				if (((int)((en.Health - procastdamage)/GetRocketDamage()))<=0)
 					return 0;
 				else
-					return ((int)((en.Health - procastdamage)/onerocketdamage()));
+					return ((int)((en.Health - procastdamage)/GetRocketDamage()));
 			}
 			else 
                 return 999;
@@ -2810,7 +2720,7 @@ namespace Tinker_Air13
 		static int OnlyRktCount(Hero en)
 		{
             if (!en.IsMagicImmune() && !en.IsInvul())
-				return ((int)(en.Health/onerocketdamage()+1));
+				return ((int)(en.Health/GetRocketDamage()+1));
 			else 
                 return 999;
 		}
@@ -2819,7 +2729,7 @@ namespace Tinker_Air13
 		{
             if (!en.IsMagicImmune() && !en.IsInvul())
             {
-				return ((int)(en.Health/onerocketdamage()+1)*onerocketdamage());
+				return ((int)(en.Health/(int)GetRocketDamage()+1)*(int)GetRocketDamage());
             }
 			else 
                 return 999;
@@ -2880,7 +2790,9 @@ namespace Tinker_Air13
             //Console.WriteLine(GetLaserDamage().ToString());
             //var rocket = me.Spellbook.SpellW;
             //Console.WriteLine("Console Test");
-            //Console.WriteLine(rocket.AbilitySpecialData.First(x => x.Name == "#AbilityDamage").GetValue(rocket.Level - 1).ToString());
+            //var eblade = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_ethereal_blade"));
+            //Console.WriteLine(eblade.AbilitySpecialData.FirstOrDefault(x => x.Name == "blast_agility_multiplier").Value.ToString());
+            //Console.WriteLine(eblade.AbilitySpecialData.FirstOrDefault(x => x.Name == "blast_damage_base").Value.ToString());
 
 
             var targetInf = me.ClosestToMouseTarget(2000);
@@ -2953,6 +2865,12 @@ namespace Tinker_Air13
 				Drawing.DrawText("x2", new Vector2(HUDInfo.ScreenSizeX() / 2-240 + coordX, HUDInfo.ScreenSizeY() / 2 + 285 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
                 Drawing.DrawText("x3", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
                 Drawing.DrawText("x3", new Vector2(HUDInfo.ScreenSizeX() / 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+                Drawing.DrawText(GetComboDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 200 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText(GetComboDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 200 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+                Drawing.DrawText((2 * GetComboDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 200 + coordX, HUDInfo.ScreenSizeY() / 2 + 285 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText((2 * GetComboDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 200 + coordX, HUDInfo.ScreenSizeY() / 2 + 285 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+                Drawing.DrawText((3 * GetComboDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 200 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText((3 * GetComboDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 200 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
 
                 Drawing.DrawText("laser dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
                 Drawing.DrawText("laser dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 360 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
@@ -2964,37 +2882,35 @@ namespace Tinker_Air13
                 Drawing.DrawText(GetRocketDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
                 Drawing.DrawText(GetRocketDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
 
-                Drawing.DrawText("dagon dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-                Drawing.DrawText("dagon dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
-                Drawing.DrawText(GetDagonDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-                Drawing.DrawText(GetDagonDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 385 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+                Drawing.DrawText("dagon dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 410 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText("dagon dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 410 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+                Drawing.DrawText(GetDagonDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 410 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText(GetDagonDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 410 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+
+                Drawing.DrawText("eblade dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 435 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText("eblade dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 - 240 + coordX, HUDInfo.ScreenSizeY() / 2 + 435 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+                Drawing.DrawText(GetEtherealBladeDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 435 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText(GetEtherealBladeDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 435 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
 
                 Drawing.DrawText("dmg", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -200 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
 				Drawing.DrawText("dmg", new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
 				
-				Drawing.DrawText(averagedamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -200 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText(averagedamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
-				Drawing.DrawText((2*averagedamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordX, HUDInfo.ScreenSizeY() / 2 + 285 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText((2*averagedamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordX, HUDInfo.ScreenSizeY() / 2 + 285 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
-				Drawing.DrawText((3*averagedamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText((3*averagedamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
-							
-							
-				Drawing.DrawText("mana", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText("mana", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);			
+
+				Drawing.DrawText("mana", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+				Drawing.DrawText("mana", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);			
 				if (Refresh != null && Refresh.Level>0)
 				{
-					Drawing.DrawText(manaprocast().ToString()+" ("+(-manaprocast()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText(manaprocast().ToString()+" ("+(-manaprocast()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + coordY), new Vector2(30, 200),(me.Mana>manaprocast())? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
-					Drawing.DrawText((2*manaprocast()+rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(2*manaprocast()+rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordX, HUDInfo.ScreenSizeY() / 2 + 285 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText((2*manaprocast()+rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(2*manaprocast()+rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordX , HUDInfo.ScreenSizeY() / 2 + 285 + coordY), new Vector2(30, 200), (me.Mana>(2*manaprocast()+rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
-					Drawing.DrawText((3*manaprocast()+2*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(3*manaprocast()+2*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText((3*manaprocast()+2*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(3*manaprocast()+2*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + coordY), new Vector2(30, 200), (me.Mana>(3*manaprocast()+2*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText(manaprocast().ToString()+" ("+(-manaprocast()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText(manaprocast().ToString()+" ("+(-manaprocast()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + coordY), new Vector2(30, 200),(me.Mana>manaprocast())? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText((2*manaprocast()+rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(2*manaprocast()+rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordX, HUDInfo.ScreenSizeY() / 2 + 285 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText((2*manaprocast()+rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(2*manaprocast()+rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordX , HUDInfo.ScreenSizeY() / 2 + 285 + coordY), new Vector2(30, 200), (me.Mana>(2*manaprocast()+rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText((3*manaprocast()+2*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(3*manaprocast()+2*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText((3*manaprocast()+2*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(3*manaprocast()+2*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordX, HUDInfo.ScreenSizeY() / 2 + 310 + coordY), new Vector2(30, 200), (me.Mana>(3*manaprocast()+2*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
 				}
 				else
 				{
-					Drawing.DrawText(manaprocast().ToString()+" ("+(-manaprocast()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText(manaprocast().ToString()+" ("+(-manaprocast()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + coordY), new Vector2(30, 200), (me.Mana>manaprocast())? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText(manaprocast().ToString()+" ("+(-manaprocast()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText(manaprocast().ToString()+" ("+(-manaprocast()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordX, HUDInfo.ScreenSizeY() / 2 + 260 + coordY), new Vector2(30, 200), (me.Mana>manaprocast())? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
 				}
 			}
 				
@@ -3029,28 +2945,28 @@ namespace Tinker_Air13
 				Drawing.DrawText("dmg", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 232 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
 				Drawing.DrawText("dmg", new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 232 + coordYr), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
 				
-				Drawing.DrawText(onerocketdamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText(onerocketdamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
-				Drawing.DrawText((2*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 285 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText((2*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 285 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
-				Drawing.DrawText((3*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 310 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText((3*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 310 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
-				Drawing.DrawText((4*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 335 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText((4*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 335 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
-				Drawing.DrawText((5*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText((5*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 360 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
-				Drawing.DrawText((6*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText((6*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 385 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
-				Drawing.DrawText((7*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 410 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText((7*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 410 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
-				Drawing.DrawText((8*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 435 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText((8*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 435 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
-				Drawing.DrawText((9*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 460 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText((9*onerocketdamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 460 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
+				Drawing.DrawText(GetRocketDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+				Drawing.DrawText(GetRocketDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
+				Drawing.DrawText((2*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 285 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+				Drawing.DrawText((2*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 285 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
+				Drawing.DrawText((3*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 310 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+				Drawing.DrawText((3*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 310 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
+				Drawing.DrawText((4*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 335 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+				Drawing.DrawText((4*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 335 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
+				Drawing.DrawText((5*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+				Drawing.DrawText((5*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 360 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
+				Drawing.DrawText((6*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+				Drawing.DrawText((6*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 385 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
+				Drawing.DrawText((7*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 410 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+				Drawing.DrawText((7*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 410 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
+				Drawing.DrawText((8*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 435 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+				Drawing.DrawText((8*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 435 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
+				Drawing.DrawText((9*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 460 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+				Drawing.DrawText((9*GetRocketDamage()).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 460 + coordYr), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);			
 
 							
-				Drawing.DrawText("mana", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 232 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText("mana", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 232 + coordYr), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);			
+				Drawing.DrawText("mana", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 232 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+				Drawing.DrawText("mana", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 232 + coordYr), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);			
 				
 
 
@@ -3060,30 +2976,30 @@ namespace Tinker_Air13
 					Drawing.DrawText("               x"+ Math.Ceiling((me.Mana-manaonerocket())/(manaonerocket()+rearm_mana[Refresh.Level - 1] )).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2-200 + coordXr, HUDInfo.ScreenSizeY() / 2 + 210 + coordYr), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);			
 				
 				
-					Drawing.DrawText(manaonerocket().ToString()+" ("+(-manaonerocket()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText(manaonerocket().ToString()+" ("+(-manaonerocket()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + coordYr), new Vector2(30, 200),(me.Mana>manaonerocket())? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
-					Drawing.DrawText((2*manaonerocket()+rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(2*manaonerocket()+rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 285 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText((2*manaonerocket()+rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(2*manaonerocket()+rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordXr , HUDInfo.ScreenSizeY() / 2 + 285 + coordYr), new Vector2(30, 200), (me.Mana>(2*manaonerocket()+rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
-					Drawing.DrawText((3*manaonerocket()+2*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(3*manaonerocket()+2*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 310 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText((3*manaonerocket()+2*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(3*manaonerocket()+2*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 310 + coordYr), new Vector2(30, 200), (me.Mana>(3*manaonerocket()+2*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
-					Drawing.DrawText((4*manaonerocket()+3*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(4*manaonerocket()+3*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 335 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText((4*manaonerocket()+3*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(4*manaonerocket()+3*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 335 + coordYr), new Vector2(30, 200), (me.Mana>(4*manaonerocket()+3*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
-					Drawing.DrawText((5*manaonerocket()+4*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(5*manaonerocket()+4*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText((5*manaonerocket()+4*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(5*manaonerocket()+4*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 360 + coordYr), new Vector2(30, 200), (me.Mana>(5*manaonerocket()+4*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
-					Drawing.DrawText((6*manaonerocket()+5*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(6*manaonerocket()+5*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText((6*manaonerocket()+5*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(6*manaonerocket()+5*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 385 + coordYr), new Vector2(30, 200), (me.Mana>(6*manaonerocket()+5*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
-					Drawing.DrawText((7*manaonerocket()+6*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(7*manaonerocket()+6*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 410 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText((7*manaonerocket()+6*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(7*manaonerocket()+6*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 410 + coordYr), new Vector2(30, 200), (me.Mana>(7*manaonerocket()+6*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
-					Drawing.DrawText((8*manaonerocket()+7*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(8*manaonerocket()+7*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 435 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText((8*manaonerocket()+7*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(8*manaonerocket()+7*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 435 + coordYr), new Vector2(30, 200), (me.Mana>(8*manaonerocket()+7*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
-					Drawing.DrawText((9*manaonerocket()+8*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(9*manaonerocket()+8*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 460 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText((9*manaonerocket()+8*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(9*manaonerocket()+8*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 460 + coordYr), new Vector2(30, 200), (me.Mana>(9*manaonerocket()+8*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText(manaonerocket().ToString()+" ("+(-manaonerocket()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText(manaonerocket().ToString()+" ("+(-manaonerocket()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + coordYr), new Vector2(30, 200),(me.Mana>manaonerocket())? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText((2*manaonerocket()+rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(2*manaonerocket()+rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 285 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText((2*manaonerocket()+rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(2*manaonerocket()+rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordXr , HUDInfo.ScreenSizeY() / 2 + 285 + coordYr), new Vector2(30, 200), (me.Mana>(2*manaonerocket()+rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText((3*manaonerocket()+2*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(3*manaonerocket()+2*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 310 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText((3*manaonerocket()+2*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(3*manaonerocket()+2*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 310 + coordYr), new Vector2(30, 200), (me.Mana>(3*manaonerocket()+2*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText((4*manaonerocket()+3*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(4*manaonerocket()+3*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 335 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText((4*manaonerocket()+3*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(4*manaonerocket()+3*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 335 + coordYr), new Vector2(30, 200), (me.Mana>(4*manaonerocket()+3*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText((5*manaonerocket()+4*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(5*manaonerocket()+4*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText((5*manaonerocket()+4*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(5*manaonerocket()+4*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 360 + coordYr), new Vector2(30, 200), (me.Mana>(5*manaonerocket()+4*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText((6*manaonerocket()+5*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(6*manaonerocket()+5*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText((6*manaonerocket()+5*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(6*manaonerocket()+5*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 385 + coordYr), new Vector2(30, 200), (me.Mana>(6*manaonerocket()+5*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText((7*manaonerocket()+6*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(7*manaonerocket()+6*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 410 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText((7*manaonerocket()+6*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(7*manaonerocket()+6*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 410 + coordYr), new Vector2(30, 200), (me.Mana>(7*manaonerocket()+6*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText((8*manaonerocket()+7*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(8*manaonerocket()+7*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 435 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText((8*manaonerocket()+7*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(8*manaonerocket()+7*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 435 + coordYr), new Vector2(30, 200), (me.Mana>(8*manaonerocket()+7*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText((9*manaonerocket()+8*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(9*manaonerocket()+8*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 460 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText((9*manaonerocket()+8*rearm_mana[Refresh.Level - 1]).ToString()+" ("+(-(9*manaonerocket()+8*rearm_mana[Refresh.Level - 1])+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 460 + coordYr), new Vector2(30, 200), (me.Mana>(9*manaonerocket()+8*rearm_mana[Refresh.Level - 1]))? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
 				
 				}
 				else
 				{
-					Drawing.DrawText(manaonerocket().ToString()+" ("+(-manaonerocket()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-					Drawing.DrawText(manaonerocket().ToString()+" ("+(-manaonerocket()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -120 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + coordYr), new Vector2(30, 200), (me.Mana>manaonerocket())? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
+					Drawing.DrawText(manaonerocket().ToString()+" ("+(-manaonerocket()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + 2 + coordYr), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+					Drawing.DrawText(manaonerocket().ToString()+" ("+(-manaonerocket()+(int)me.Mana).ToString()+")", new Vector2(HUDInfo.ScreenSizeX() / 2 -80 + coordXr, HUDInfo.ScreenSizeY() / 2 + 260 + coordYr), new Vector2(30, 200), (me.Mana>manaonerocket())? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);			
 				}
 			}
 
@@ -3121,6 +3037,35 @@ namespace Tinker_Air13
 				Drawing.DrawText((Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? "KS: on" : "KS: off", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 260), new Vector2(30, 200),(Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);
 			}
 		}
+
+        public static float GetComboDamage()
+        {
+            var comboDamage = 0.0f;
+            var totalMagicResistance = 0.0f;
+            var etheral_blade_magic_reduction = 0.0f;
+            var veil_of_discord_magic_reduction = 0.0f;
+            var base_magic_res = 0.25f;
+
+            var eblade = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_ethereal_blade"));
+
+            if (eblade != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name))
+            {
+                etheral_blade_magic_reduction = 0.4f;
+            }
+
+            var veil = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_veil_of_discord"));
+
+            if (veil != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name))
+            {
+                veil_of_discord_magic_reduction = 0.25f;
+            }
+
+            totalMagicResistance = ((1 - base_magic_res) * (1 + etheral_blade_magic_reduction) * (1 + veil_of_discord_magic_reduction));
+
+            comboDamage = (GetEtherealBladeDamage() + GetLaserDamage() + GetRocketDamage() + GetDagonDamage()) * totalMagicResistance;
+
+            return comboDamage;
+        }
 
         public static float GetLaserDamage()
         {
@@ -3197,9 +3142,9 @@ namespace Tinker_Air13
             var dagonDamage = 0.0f;
             var totalSpellAmp = 0.0f;
 
-            var dagon = me.Inventory.Items.FirstOrDefault(x => x.Name == "item_dagon");
+            var dagon = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_dagon"));
 
-            if (dagon != null)
+            if (dagon != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_dagon"))
             {
                 dagonDamage += (dagon.AbilitySpecialData.FirstOrDefault(x => x.Name == "damage").GetValue(dagon.Level - 1));
             }
@@ -3222,6 +3167,38 @@ namespace Tinker_Air13
             dagonDamage *= totalSpellAmp;
 
             return dagonDamage;
+        }
+
+        public static float GetEtherealBladeDamage()
+        {
+            var etherealBladeDamage = 0.0f;
+            var totalSpellAmp = 0.0f;
+
+            var eblade = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_ethereal_blade"));
+
+            if (eblade != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name))
+            {
+                etherealBladeDamage += ((me.TotalIntelligence * eblade.AbilitySpecialData.FirstOrDefault(x => x.Name == "blast_agility_multiplier").Value) + eblade.AbilitySpecialData.FirstOrDefault(x => x.Name == "blast_damage_base").Value);
+            }
+
+            //Spell Amplification Calculation (addition)
+            var talent15 = me.Spellbook.Spells.First(x => x.Name == "special_bonus_spell_amplify_4");
+            if (talent15.Level > 0)
+            {
+                totalSpellAmp += (talent15.AbilitySpecialData.First(x => x.Name == "value").Value) / 100.0f;
+            }
+
+            var aetherLens = me.Inventory.Items.FirstOrDefault(x => x.ClassID == ClassID.CDOTA_Item_Aether_Lens);
+            if (aetherLens != null)
+            {
+                totalSpellAmp += (aetherLens.AbilitySpecialData.First(x => x.Name == "spell_amp").Value) / 100.0f;
+            }
+
+            totalSpellAmp += (100.0f + me.TotalIntelligence / 16.0f) / 100.0f;
+
+            etherealBladeDamage *= totalSpellAmp;
+
+            return etherealBladeDamage;
         }
 
         internal class TinkerCords
