@@ -16,6 +16,8 @@ namespace Tinker_Air13
 {
     class Tinker_Air13
     {
+        private const int HIDE_AWAY_RANGE = 130;
+
         private static Ability Laser, Rocket, Refresh, March;
         private static Item blink, dagon, sheep, soulring, ethereal, shiva, ghost, cyclone, forcestaff, glimmer, bottle, travel, veil, atos;
         private static Hero me, target;
@@ -25,9 +27,15 @@ namespace Tinker_Air13
 		private static readonly Dictionary<Unit, ParticleEffect> VisibleUnit3 = new Dictionary<Unit, ParticleEffect>();
 		private static readonly Dictionary<Unit, ParticleEffect> VisibleUnit4 = new Dictionary<Unit, ParticleEffect>();
 
+        private static readonly List<ParticleEffect> Effects = new List<ParticleEffect>();
+        private const string EffectPath = @"particles\range_display_blue.vpcf";
+        private const string EffectPanicPath = @"particles\range_display_red.vpcf";
+
         private static readonly Menu Menu = new Menu("Tinker Air13", "Tinker Air13", true, "npc_dota_hero_tinker", true);
         private static readonly Menu _skills = new Menu("Skills", "Skills");
         private static readonly Menu _items = new Menu("Items", "Items");
+        private static readonly Menu _autopush = new Menu("Auto Push", "Auto Push");
+        private static readonly Menu _panic = new Menu("Panic Mode", "Panic Mode");
         private static readonly Menu _ranges = new Menu("Drawing", "Drawing");
 
         private static readonly Dictionary<string, bool> Skills = new Dictionary<string, bool>
@@ -77,7 +85,7 @@ namespace Tinker_Air13
 		private static double lensmult = 1, spellamplymult = 1;
 		
         private static ParticleEffect rangedisplay_dagger, rangedisplay_rocket, rangedisplay_laser;
-		private static	ParticleEffect effect2, effect3, effect4;
+		private static ParticleEffect effect2, effect3, effect4;
 
         private static int range_dagger, range_rocket, range_laser;
 			
@@ -110,10 +118,21 @@ namespace Tinker_Air13
 
             Menu.AddSubMenu(_skills);
             Menu.AddSubMenu(_items);
+            Menu.AddSubMenu(_autopush);
+            Menu.AddSubMenu(_panic);
             Menu.AddSubMenu(_ranges);
 
             _skills.AddItem(new MenuItem("Skills: ", "Skills:").SetValue(new AbilityToggler(Skills)));
             _items.AddItem(new MenuItem("Items: ", "Items:").SetValue(new AbilityToggler(Items)));
+
+            _autopush.AddItem(new MenuItem("autoPush", "Enable auto push helper").SetValue(true));
+            _autopush.AddItem(new MenuItem("autoRearm", "Enable auto rearm in fountain when travel boots on cooldown").SetValue(true));
+            _autopush.AddItem(new MenuItem("pushFount", "Use auto push if I have modif Fountain").SetValue(true));
+            _autopush.AddItem(new MenuItem("pushSafe", "Use march only after blinking to a safe spot").SetValue(true));
+
+            _panic.AddItem(new MenuItem("panicMod", "Auto blink and tp to fountain if health <=| and enemy is around").SetValue(true));
+            _panic.AddItem(new MenuItem("health", "Min healh % to escape").SetValue(new Slider(35)));
+
             _ranges.AddItem(new MenuItem("Blink Range", "Show Blink Dagger Range").SetValue(true));
             _ranges.AddItem(new MenuItem("Blink Range Incoming TP", "Show incoming TP Blink Range").SetValue(true));
             _ranges.AddItem(new MenuItem("Rocket Range", "Show Rocket Range").SetValue(true));
@@ -136,8 +155,6 @@ namespace Tinker_Air13
             _settings.AddItem(new MenuItem("BarPosXr", "Rocket Calc Position X").SetValue(new Slider(950, -1500, 1500)));
             _settings.AddItem(new MenuItem("BarPosYr", "Rocket Calc Position Y").SetValue(new Slider(-300, -1500, 1500)));
 
-            _settings.AddItem(new MenuItem("autoPush", "Enable auto push helper").SetValue(true));
-            _settings.AddItem(new MenuItem("autoRearm", "Enable auto rearm in fountain").SetValue(true));
             _settings.AddItem(new MenuItem("debug", "Enable debug").SetValue(false));
 
             Menu.AddToMainMenu();
@@ -153,6 +170,7 @@ namespace Tinker_Air13
 			
             Drawing.OnDraw += Information;
 			Drawing.OnDraw += DrawRanges;
+            Drawing.OnDraw += ParticleDraw;
         }
 		
 		/*
@@ -250,6 +268,14 @@ namespace Tinker_Air13
                 return;
 
             List<Unit> fount = ObjectManager.GetEntities<Unit>().Where(x => x.Team == me.Team && x.ClassID == ClassID.CDOTA_Unit_Fountain).ToList();
+            var creeps = ObjectManager.GetEntities<Creep>().Where(creep =>
+                   (creep.ClassID == ClassID.CDOTA_BaseNPC_Creep_Lane
+                   || creep.ClassID == ClassID.CDOTA_BaseNPC_Creep_Siege
+                   || creep.ClassID == ClassID.CDOTA_BaseNPC_Creep_Neutral
+                   || creep.ClassID == ClassID.CDOTA_BaseNPC_Creep) &&
+                   creep.IsAlive && creep.Team != me.Team && creep.IsVisible && creep.IsSpawned).ToList();
+
+            Vector3 safe = GetClosestToVector(TinkerCords.SafePos, me);
 
             //Castrange Calculation (Tinker Talent20 and Aether Lens)
             castrange = 0;
@@ -273,147 +299,234 @@ namespace Tinker_Air13
                 Console.WriteLine(me.Position.ToString());
                 Utils.Sleep(1000, "Safeposition");
             }*/
-
-
-            if ((me.HasModifier("modifier_fountain_aura_buff") && Menu.Item("autoRearm").IsActive()))
+        
+            //Auto Push
+            if (Menu.Item("autoPush").IsActive() 
+                && !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)
+                && !Game.IsKeyDown(Menu.Item("Rocket Spam Key").GetValue<KeyBind>().Key)
+                && !Game.IsKeyDown(Menu.Item("March Spam Key").GetValue<KeyBind>().Key)
+                && !Game.IsChatOpen 
+                && me.IsAlive)
             {
+                FindItems();
 
-                if (me.IsChanneling() || me.HasModifier("modifier_tinker_rearm") || Refresh == null) return;
-
-                /*
-                if (creeps.Count(x => x.Distance2D(me) <= 1100) >= 1)
+                if ((me.HasModifier("modifier_fountain_aura_buff") && Menu.Item("pushFount").IsActive()))
                 {
-                    if (ghost != null
-                        && ghost.CanBeCasted()
-                        && Menu.Item("Push Items").GetValue<AbilityToggler>().IsEnabled(ghost.Name)
-                        && Utils.SleepCheck("ghost"))
+                    if (me.IsChanneling() || me.HasModifier("modifier_tinker_rearm") || Refresh == null) return;
+
+                    if (creeps.Count(x => x.Distance2D(me) <= 1100) >= 1)
                     {
-                        ghost.UseAbility();
-                        Utils.Sleep(250, "ghost");
-                    }
-                    if (lotus != null
-                        && lotus.CanBeCasted()
-                        && creeps.Count(x => x.Distance2D(me) <= 1100) >= 2
-                        && Menu.Item("Push Items").GetValue<AbilityToggler>().IsEnabled(lotus.Name)
-                        && Utils.SleepCheck("lotus"))
-                    {
-                        lotus.UseAbility(me);
-                        Utils.Sleep(250, "lotus");
-                    }
-                    if (
-                        glimmer != null
-                        && glimmer.CanBeCasted()
-                        && creeps.Count(x => x.Distance2D(me) <= 1100) >= 2
-                        && me.Distance2D(safe) >= HIDE_AWAY_RANGE
-                        && Menu.Item("Push Items").GetValue<AbilityToggler>().IsEnabled(glimmer.Name)
-                        && Utils.SleepCheck("glimmer"))
-                    {
-                        glimmer.UseAbility(me);
-                        Utils.Sleep(250, "glimmer");
-                    }
-                    if (
-                      E != null && E.CanBeCasted()
-                      && !R.IsChanneling
-                      && (me.Distance2D(safe) <= HIDE_AWAY_RANGE
-                      || !Menu.Item("pushSafe").IsActive())
-                      && creeps.Count(x => x.Distance2D(me) <= 900) >= 2
-                      && Menu.Item("Skills").GetValue<AbilityToggler>().IsEnabled(E.Name)
-                      && Utils.SleepCheck("E")
-                      )
-                    {
-                        E.UseAbility(Prediction.InFront(me, 200));
-                        Utils.Sleep(250, "E");
-                    }
-                    if (
-                      E != null && E.CanBeCasted()
-                      && !R.IsChanneling
-                      && (creeps.Count(x => x.Distance2D(safe) <= 900) <= 1 || me.Distance2D(safe) >= 1190)
-                      && creeps.Count(x => x.Distance2D(me) <= 900) >= 2
-                      && Menu.Item("Skills").GetValue<AbilityToggler>().IsEnabled(E.Name)
-                      && Utils.SleepCheck("E")
-                      )
-                    {
-                        E.UseAbility(Prediction.InFront(me, 200));
-                        Utils.Sleep(250, "E");
-                    }
-                    if (
-                     E != null && !E.CanBeCasted()
-                     && !R.IsChanneling
-                     && me.Distance2D(safe) >= 1190
-                     && Menu.Item("Skills").GetValue<AbilityToggler>().IsEnabled(E.Name)
-                     && Utils.SleepCheck("E")
-                     )
-                    {
-                        me.Move(safe);
-                        Utils.Sleep(250, "E");
-                    }
-                    if (
-                    blink != null
-                    && me.CanCast()
-                    && (Menu.Item("pushSafe").IsActive()
-                    || !E.CanBeCasted())
-                    && !R.IsChanneling
-                    && blink.CanBeCasted()
-                    )
-                    {
-                        if (me.Distance2D(safe) <= 1190
-                            && me.Distance2D(safe) >= 100
-                            && Utils.SleepCheck("blink"))
+                        if (ghost != null
+                            && ghost.CanBeCasted()
+                            //&& Menu.Item("Push Items").GetValue<AbilityToggler>().IsEnabled(ghost.Name)
+                            && Utils.SleepCheck("ghost"))
                         {
-                            blink.UseAbility(safe);
-                            Game.ExecuteCommand("dota_player_units_auto_attack_mode 0");
-                            Utils.Sleep(250, "blink");
+                            ghost.UseAbility();
+                            Utils.Sleep(250, "ghost");
                         }
+
+                        /*
+                        if (lotus != null
+                            && lotus.CanBeCasted()
+                            && creeps.Count(x => x.Distance2D(me) <= 1100) >= 2
+                            //&& Menu.Item("Push Items").GetValue<AbilityToggler>().IsEnabled(lotus.Name)
+                            && Utils.SleepCheck("lotus"))
+                        {
+                            lotus.UseAbility(me);
+                            Utils.Sleep(250, "lotus");
+                        }*/
+
+                        if (
+                            glimmer != null
+                            && glimmer.CanBeCasted()
+                            && creeps.Count(x => x.Distance2D(me) <= 1100) >= 2
+                            && me.Distance2D(safe) >= HIDE_AWAY_RANGE
+                            //&& Menu.Item("Push Items").GetValue<AbilityToggler>().IsEnabled(glimmer.Name)
+                            && Utils.SleepCheck("glimmer"))
+                        {
+                            glimmer.UseAbility(me);
+                            Utils.Sleep(250, "glimmer");
+                        }
+
+                        if (March != null && March.CanBeCasted()
+                            && !Refresh.IsChanneling
+                            && (me.Distance2D(safe) <= HIDE_AWAY_RANGE
+                            || !Menu.Item("pushSafe").IsActive())
+                            && creeps.Count(x => x.Distance2D(me) <= 900) >= 2
+                            //&& Menu.Item("Skills").GetValue<AbilityToggler>().IsEnabled(E.Name)
+                            && Utils.SleepCheck("March")
+                          )
+                        {
+                            var closestCreep = ObjectManager.GetEntities<Creep>().Where(creep =>
+                                   (creep.ClassID == ClassID.CDOTA_BaseNPC_Creep_Lane
+                                   || creep.ClassID == ClassID.CDOTA_BaseNPC_Creep_Siege
+                                   || creep.ClassID == ClassID.CDOTA_BaseNPC_Creep_Neutral
+                                   || creep.ClassID == ClassID.CDOTA_BaseNPC_Creep) &&
+                                   creep.IsAlive && creep.Team != me.Team && creep.IsVisible && creep.IsSpawned).MinOrDefault(x => x.Distance2D(me)).Position;
+
+                            March.UseAbility(Vector3.Add(me.Position, Vector3.Multiply(Vector3.Subtract(closestCreep, me.Position), 0.1f)));
+                            
+                            Utils.Sleep(250, "March");
+                        }
+                        if (March != null && March.CanBeCasted()
+                            && !Refresh.IsChanneling
+                            && (creeps.Count(x => x.Distance2D(safe) <= 900) <= 1 || me.Distance2D(safe) >= 1190)
+                            && creeps.Count(x => x.Distance2D(me) <= 900) >= 2
+                            //&& Menu.Item("Skills").GetValue<AbilityToggler>().IsEnabled(E.Name)
+                            && Utils.SleepCheck("March")
+                          )
+                        {
+                            var closestCreep = ObjectManager.GetEntities<Creep>().Where(creep =>
+                                   (creep.ClassID == ClassID.CDOTA_BaseNPC_Creep_Lane
+                                   || creep.ClassID == ClassID.CDOTA_BaseNPC_Creep_Siege
+                                   || creep.ClassID == ClassID.CDOTA_BaseNPC_Creep_Neutral
+                                   || creep.ClassID == ClassID.CDOTA_BaseNPC_Creep) &&
+                                   creep.IsAlive && creep.Team != me.Team && creep.IsVisible && creep.IsSpawned).MinOrDefault(x => x.Distance2D(me)).Position;
+                            March.UseAbility(Vector3.Add(me.Position, Vector3.Multiply(Vector3.Subtract(closestCreep, me.Position), 0.1f)));
+
+                            Utils.Sleep(250, "March");
+                        }
+                        if (
+                         March != null && !March.CanBeCasted()
+                         && !Refresh.IsChanneling
+                         && me.Distance2D(safe) >= 1190 + castrange
+                         //&& Menu.Item("Skills").GetValue<AbilityToggler>().IsEnabled(E.Name)
+                         && Utils.SleepCheck("March")
+                         )
+                        {
+                            me.Move(safe);
+                            Utils.Sleep(250, "March");
+                        }
+                        if (
+                        blink != null
+                        && me.CanCast()
+                        && (Menu.Item("pushSafe").IsActive()
+                        || !March.CanBeCasted())
+                        && !Refresh.IsChanneling
+                        && blink.CanBeCasted()
+                        )
+                        {
+                            if (me.Distance2D(safe) <= 1190 + castrange
+                                && me.Distance2D(safe) >= 100
+                                && Utils.SleepCheck("blink"))
+                            {
+                                blink.UseAbility(safe);
+                                Game.ExecuteCommand("dota_player_units_auto_attack_mode 0");
+                                Utils.Sleep(250, "blink");
+                            }
+                        }
+
+                        /*
+                        if (
+                           blink != null
+                           && me.CanCast()
+                           && Menu.Item("panicMod").IsActive()
+                           && !Refresh.IsChanneling
+                           && blink.CanBeCasted()
+                           )
+                        {
+                            if (me.Distance2D(safe) >= 1190
+                                && me.Distance2D(panic) <= 1190
+                                && Utils.SleepCheck("blink"))
+                            {
+                                blink.UseAbility(panic);
+                                Game.ExecuteCommand("dota_player_units_auto_attack_mode 0");
+                                Utils.Sleep(250, "blink");
+                            }
+                        }*/
                     }
+
+                    if (soulring != null
+                        && soulring.CanBeCasted()
+                        && !me.IsChanneling()
+                        && me.Health >= (me.MaximumHealth * 0.5)
+                        //&& Menu.Item("Push Items").GetValue<AbilityToggler>().IsEnabled(soul.Name)
+                        && Utils.SleepCheck("soul"))
+                    {
+                        soulring.UseAbility();
+                        Utils.Sleep(250, "soulring");
+                    }
+
+                    if (Refresh != null
+                        && Refresh.CanBeCasted()
+                        && travel != null
+                        && !travel.CanBeCasted()
+                        && me.Distance2D(fount.First().Position) <= 900
+                        && !me.IsChanneling()
+                        //&& Menu.Item("Skills").GetValue<AbilityToggler>().IsEnabled(Refresh.Name)
+                        && Utils.SleepCheck("Rearms"))
+                    {
+                        Refresh.UseAbility();
+                        if (Refresh.Level == 1)
+                            Utils.Sleep(3010, "Rearms");
+                        if (Refresh.Level == 2)
+                            Utils.Sleep(1510, "Rearms");
+                        if (Refresh.Level == 3)
+                            Utils.Sleep(760, "Rearms");
+                    }
+
+                    if (Refresh.IsChanneling || me.HasModifier("modifier_tinker_rearm") || me.IsChanneling()) return;
+
+
+                    if (me.Distance2D(safe) >= 150) return;
+                    if (soulring != null
+                            && soulring.CanBeCasted()
+                            && !Refresh.IsChanneling
+                            && me.Health >= (me.MaximumHealth * 0.5)
+                            && me.Distance2D(safe) <= HIDE_AWAY_RANGE
+                            && Utils.SleepCheck("soul"))
+                    {
+                        soulring.UseAbility();
+                        Utils.Sleep(500, "soul");
+                    }
+
                     if (
-                       blink != null
-                       && me.CanCast()
-                       && Menu.Item("panicMod").IsActive()
-                       && !R.IsChanneling
-                       && blink.CanBeCasted()
+                        travel != null
+                        && travel.CanBeCasted()
+                        && !Refresh.IsChanneling
+                        //&& Menu.Item("Push Items").GetValue<AbilityToggler>().IsEnabled("item_travel_boots")
+                        && me.Mana <= Refresh.ManaCost + 75
+                        && me.Distance2D(safe) <= HIDE_AWAY_RANGE
+                        && Utils.SleepCheck("travel")
                        )
                     {
-                        if (me.Distance2D(safe) >= 1190
-                            && me.Distance2D(panic) <= 1190
-                            && Utils.SleepCheck("blink"))
-                        {
-                            blink.UseAbility(panic);
-                            Game.ExecuteCommand("dota_player_units_auto_attack_mode 0");
-                            Utils.Sleep(250, "blink");
-                        }
+                        travel.UseAbility(fount.First().Position);
+                        Utils.Sleep(300, "travel");
                     }
-                }
 
-                if (soulring != null
-                    && soulring.CanBeCasted()
-                    && !me.IsChanneling()
-                    && me.Health >= (me.MaximumHealth * 0.5)
-                    //&& Menu.Item("Push Items").GetValue<AbilityToggler>().IsEnabled(soul.Name)
-                    && Utils.SleepCheck("soul"))
-                {
-                    soulring.UseAbility();
-                    Utils.Sleep(250, "soulring");
-                }*/
-
-                if (Refresh != null
-                    && Refresh.CanBeCasted()
-                    && travel != null
-                    && !travel.CanBeCasted()
-                    && me.Distance2D(fount.First().Position) <= 900
-                    && !me.IsChanneling()
-                    //&& Menu.Item("Skills").GetValue<AbilityToggler>().IsEnabled(Refresh.Name)
-                    && Utils.SleepCheck("Rearms"))
-                {
-                    Refresh.UseAbility();
-                    if (Refresh.Level == 1)
-                        Utils.Sleep(3010, "Rearms");
-                    if (Refresh.Level == 2)
-                        Utils.Sleep(1510, "Rearms");
-                    if (Refresh.Level == 3)
-                        Utils.Sleep(760, "Rearms");
+                    if (
+                        travel != null
+                        && travel.CanBeCasted()
+                        && creeps.Count(x => x.Distance2D(me) <= 1100) <= 2
+                        && !Refresh.IsChanneling
+                        //&& Menu.Item("Push Items").GetValue<AbilityToggler>().IsEnabled("item_travel_boots")
+                        && me.Distance2D(safe) <= HIDE_AWAY_RANGE
+                        && Utils.SleepCheck("travel")
+                       )
+                    {
+                        travel.UseAbility(fount.First().Position);
+                        Utils.Sleep(300, "travel");
+                    }
+                    else
+                    if (
+                        Refresh != null
+                        && Refresh.CanBeCasted()
+                        && !March.CanBeCasted()
+                        && creeps.Count(x => x.Distance2D(me) >= 1100) >= 2
+                        && !Refresh.IsChanneling
+                        && me.Mana >= Refresh.ManaCost + 75
+                        && me.Distance2D(safe) <= HIDE_AWAY_RANGE
+                        //&& Menu.Item("Skills").GetValue<AbilityToggler>().IsEnabled(Refresh.Name)
+                        && Utils.SleepCheck("Refresh")
+                       )
+                    {
+                        Refresh.UseAbility();
+                        Utils.Sleep(900, "Refresh");
+                    }
                 }
             }
 
+            //Rocket Spam Mode
             if (Game.IsKeyDown(Menu.Item("Rocket Spam Key").GetValue<KeyBind>().Key) 
                 && Utils.SleepCheck("RocketSpam") 
                 && !Game.IsChatOpen)
@@ -560,6 +673,7 @@ namespace Tinker_Air13
 				Utils.Sleep(120, "RocketSpam");
 			}
 			
+            //March Spam Mode
 			if (Game.IsKeyDown(Menu.Item("March Spam Key").GetValue<KeyBind>().Key) && Utils.SleepCheck("MarchSpam") && !Game.IsChatOpen)
             {
 				FindItems();
@@ -2039,8 +2153,8 @@ namespace Tinker_Air13
 				   effect4 = null;
 				}  
 			}
-			
-			/*
+
+            /*
 			{
 				if (linedisplay == null)
 				{
@@ -2061,11 +2175,9 @@ namespace Tinker_Air13
 				linedisplay.Dispose();
 				linedisplay = null;
 				}*/
-			
 
-			
-			
-			if (Menu.Item("Blink Range").GetValue<bool>())
+
+            if (Menu.Item("Blink Range").GetValue<bool>())
 			{
 				if (me.FindItem("item_blink")!=null)
 				{	
@@ -3245,6 +3357,35 @@ namespace Tinker_Air13
             etherealBladeDamage *= totalSpellAmp;
 
             return etherealBladeDamage;
+        }
+
+        public static Vector3 GetClosestToVector(Vector3[] coords, Unit z)
+        {
+            var closestVector = coords.First();
+            foreach (var v in coords.Where(v => closestVector.Distance2D(z) > v.Distance2D(z)))
+                closestVector = v;
+            return closestVector;
+        }
+
+        private static bool iscreated;
+        public static void ParticleDraw(EventArgs args)
+        {
+            //
+            if (!Game.IsInGame || Game.IsWatchingGame)
+                return;
+
+            if (me == null) return;
+
+            for (int i = 0; i < TinkerCords.SafePos.Count(); ++i)
+            {
+                if (!iscreated)
+                {
+                    ParticleEffect effect = new ParticleEffect(EffectPath, TinkerCords.SafePos[i]);
+                    effect.SetControlPoint(1, new Vector3(HIDE_AWAY_RANGE, 0, 0));
+                    Effects.Add(effect);
+                }
+            }
+            iscreated = true;
         }
 
         internal class TinkerCords
