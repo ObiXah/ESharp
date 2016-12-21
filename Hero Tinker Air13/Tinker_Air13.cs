@@ -82,7 +82,6 @@ namespace Tinker_Air13
 
 		private static int castrange = 0;
         private static double angle;
-		private static double lensmult = 1, spellamplymult = 1;
 		
         private static ParticleEffect rangedisplay_dagger, rangedisplay_rocket, rangedisplay_laser;
 		private static ParticleEffect effect2, effect3, effect4;
@@ -521,7 +520,12 @@ namespace Tinker_Air13
                        )
                     {
                         Refresh.UseAbility();
-                        Utils.Sleep(900, "Refresh");
+                        if (Refresh.Level == 1)
+                            Utils.Sleep(3010, "Rearms");
+                        if (Refresh.Level == 2)
+                            Utils.Sleep(1510, "Rearms");
+                        if (Refresh.Level == 3)
+                            Utils.Sleep(760, "Rearms");
                     }
                 }
             }
@@ -760,6 +764,7 @@ namespace Tinker_Air13
 				Utils.Sleep(150, "MarchSpam");
 			}
 				
+            //Combo Mode
 			if (!Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key))
                 target = null;
            	
@@ -790,7 +795,7 @@ namespace Tinker_Air13
 					if (Utils.SleepCheck("FASTCOMBO"))
 					{
 						uint elsecount = 0;
-						bool EzkillCheck = EZKill(target);
+						//bool EzkillCheck = EZKill(target);
 						bool magicimune = (!target.IsMagicImmune() && !target.Modifiers.Any(x => x.Name == "modifier_eul_cyclone"));
 						// soulring -> glimmer -> sheep -> veil-> ghost ->  ->   -> ethereal -> dagon ->  laser -> rocket -> shivas 
 
@@ -939,7 +944,7 @@ namespace Tinker_Air13
 								//&& !target.UnitState.HasFlag(UnitState.Hexed) 
 								//&& !target.UnitState.HasFlag(UnitState.Stunned) 
 								&& magicimune 
-								&& (!EzkillCheck || (target.FindItem("item_manta") != null && target.FindItem("item_manta").CanBeCasted()) || (target.FindItem("item_black_king_bar") != null && target.FindItem("item_black_king_bar").CanBeCasted()) )
+								//&& ((target.FindItem("item_manta") != null && target.FindItem("item_manta").CanBeCasted()) || (target.FindItem("item_black_king_bar") != null && target.FindItem("item_black_king_bar").CanBeCasted()))
 								&& target.NetworkPosition.Distance2D(me) <= 800+castrange + ensage_error
 								&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(sheep.Name)
 								&& Utils.SleepCheck("Blinks"))
@@ -993,7 +998,7 @@ namespace Tinker_Air13
 								Menu.Item("ComboMode").GetValue<StringList>().SelectedIndex;
 							if (Rocket.Level > 0 && Rocket.CanBeCasted() 
 								&& target.NetworkPosition.Distance2D(me) <= 2500
-								&& (!EzkillCheck)// || target.NetworkPosition.Distance2D(me) >= 800+castrange + ensage_error)
+								//&& (!EzkillCheck)// || target.NetworkPosition.Distance2D(me) >= 800+castrange + ensage_error)
 								&& !OneHitLeft(target)
 								&& magicimune  
 								&& (!target.Modifiers.Any(y => y.Name == "modifier_item_blade_mail_reflect") || me.IsMagicImmune())
@@ -1092,7 +1097,7 @@ namespace Tinker_Air13
 								
 							if (Laser.Level > 0 && Laser.CanBeCasted() 
 								&& Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(Laser.Name)
-								&& !EzkillCheck 
+								//&& !EzkillCheck 
 								&& !OneHitLeft(target)
 								&& magicimune 
 								&& (!CanReflectDamage(target) || me.IsMagicImmune())
@@ -1113,7 +1118,7 @@ namespace Tinker_Air13
 
 								
 							if (shiva != null && shiva.CanBeCasted() 
-								&& !EzkillCheck 
+								//&& !EzkillCheck 
 								&& magicimune
 								&& !OneHitLeft(target)
 								&& (!target.Modifiers.Any(y => y.Name == "modifier_item_blade_mail_reflect") || me.IsMagicImmune())
@@ -1730,6 +1735,7 @@ namespace Tinker_Air13
                         && !me.IsAttackImmune()
                         && !e.IsHexed()
                         && !e.IsMagicImmune()
+                        && !me.IsChanneling()
                         && angle <= 0.03
                         && ((e.IsMelee && me.Position.Distance2D(e) < 250)
                             || e.ClassID == ClassID.CDOTA_Unit_Hero_TemplarAssassin && me.Distance2D(e) <= e.GetAttackRange() + 50
@@ -1769,6 +1775,7 @@ namespace Tinker_Air13
                         && !me.IsAttackImmune()
                         && !e.IsHexed()
                         && (!e.Modifiers.Any(y => y.Name == "modifier_tinker_laser_blind") || e.Modifiers.Any(y => y.Name == "modifier_juggernaut_omnislash"))
+                        && !me.IsChanneling()
                         && angle <= 0.03
                         && ((e.IsMelee && me.Position.Distance2D(e) < 250)
                             && e.ClassID != ClassID.CDOTA_Unit_Hero_Tiny
@@ -1820,6 +1827,7 @@ namespace Tinker_Air13
                                         && me.Distance2D(e) <= 575 + castrange + ensage_error
                                         && !me.IsAttackImmune()
                                         && !e.IsHexed()
+                                        && !me.IsChanneling()
                                         && !e.Modifiers.Any(y => y.Name == "modifier_tinker_laser_blind")
                                         && !e.Modifiers.Any(y => y.Name == "modifier_skywrath_mystic_flare_aura_effect")
 
@@ -1916,7 +1924,7 @@ namespace Tinker_Air13
                     }
                 }
 
-
+                //Auto Killsteal
                 if (Menu.Item("autoKillsteal").GetValue<bool>()
                     && me.IsAlive
                     && me.IsVisible
@@ -1966,8 +1974,8 @@ namespace Tinker_Air13
                                 && e.NetworkPosition.Distance2D(me) < 2500
                                 && magicimune
                                 && !OneHitLeft(e)
-                                && (((veil == null || !veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff")  /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/) && e.NetworkPosition.Distance2D(me) <= 1600 + castrange) || ((e.NetworkPosition.Distance2D(me) > 1600 + castrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0) * (spellamplymult + lensmult)))))
-                                && (((ethereal == null || (ethereal != null && !ethereal.CanBeCasted()) || IsCasted(ethereal) /*|| e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal")*/ /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/) && e.NetworkPosition.Distance2D(me) <= 800 + castrange) || ((e.NetworkPosition.Distance2D(me) > 800 + castrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0) * (spellamplymult + lensmult)))))
+                                && (((veil == null || !veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff")  /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/) && e.NetworkPosition.Distance2D(me) <= 1600 + castrange) || ((e.NetworkPosition.Distance2D(me) > 1600 + castrange) && (e.Health < (int)GetRocketDamage() * (1 - e.MagicDamageResist))))
+                                && (((ethereal == null || (ethereal != null && !ethereal.CanBeCasted()) || IsCasted(ethereal) /*|| e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal")*/ /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/) && e.NetworkPosition.Distance2D(me) <= 800 + castrange) || ((e.NetworkPosition.Distance2D(me) > 800 + castrange) && (e.Health < (int)GetRocketDamage() * (1 - e.MagicDamageResist))))
 
                                 )
                                 soulring.UseAbility();
@@ -2846,6 +2854,16 @@ namespace Tinker_Air13
                     Drawing.DrawText("my distance to enemy:", new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX + 50, HUDInfo.ScreenSizeY() / 2 + 435 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
                     Drawing.DrawText(me.Distance2D(targetInf).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX + 420, HUDInfo.ScreenSizeY() / 2 + 435 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
                     Drawing.DrawText(me.Distance2D(targetInf).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX + 420, HUDInfo.ScreenSizeY() / 2 + 435 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+
+                    Drawing.DrawText("EZKill?:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX - 600, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText("EZKill?:", new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX - 600, HUDInfo.ScreenSizeY() / 2 + 360 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+                    Drawing.DrawText(EZKill(targetInf).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX - 400, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText(EZKill(targetInf).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX - 400, HUDInfo.ScreenSizeY() / 2 + 360 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+
+                    Drawing.DrawText("EZKill damage:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX - 600, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText("EZKill damage:", new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX - 600, HUDInfo.ScreenSizeY() / 2 + 385 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+                    Drawing.DrawText(GetEZKillDamage(targetInf).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX - 400, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText(GetEZKillDamage(targetInf).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX - 400, HUDInfo.ScreenSizeY() / 2 + 385 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
                 }
 
                 Drawing.DrawText("dmg", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -200 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
