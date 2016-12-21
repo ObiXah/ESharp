@@ -17,7 +17,7 @@ namespace Tinker_Air13
     class Tinker_Air13
     {
         private static Ability Laser, Rocket, Refresh, March;
-        private static Item blink, dagon, sheep, soulring, ethereal, shiva, ghost, cyclone, forcestaff, glimmer, bottle, travel, veil, aether, atos;
+        private static Item blink, dagon, sheep, soulring, ethereal, shiva, ghost, cyclone, forcestaff, glimmer, bottle, travel, veil, atos;
         private static Hero me, target;
         private static List<Hero> Alies;
 		private static readonly Dictionary<Unit, ParticleEffect> VisibleUnit = new Dictionary<Unit, ParticleEffect>();
@@ -73,10 +73,8 @@ namespace Tinker_Air13
 		private static int ensage_error = 50;
 
 		private static int castrange = 0;
-        private static double allmult = 1;
-        private static int alldamage = 0, procastdamage = 0;
         private static double angle;
-		private static double etherealmult = 1, veilmult = 1, lensmult = 1, spellamplymult = 1;
+		private static double lensmult = 1, spellamplymult = 1;
 		
         private static ParticleEffect rangedisplay_dagger, rangedisplay_rocket, rangedisplay_laser;
 		private static	ParticleEffect effect2, effect3, effect4;
@@ -251,6 +249,9 @@ namespace Tinker_Air13
             if (me.ClassID != ClassID.CDOTA_Unit_Hero_Tinker)
                 return;
 
+            List<Unit> fount = ObjectManager.GetEntities<Unit>().Where(x => x.Team == me.Team && x.ClassID == ClassID.CDOTA_Unit_Fountain).ToList();
+
+            //Castrange Calculation (Tinker Talent20 and Aether Lens)
             castrange = 0;
 
             var aetherLens = me.Inventory.Items.FirstOrDefault(x => x.ClassID == ClassID.CDOTA_Item_Aether_Lens);
@@ -265,8 +266,6 @@ namespace Tinker_Air13
             {
                 castrange += (int)talent20.AbilitySpecialData.First(x => x.Name == "value").Value;
             }
-
-            Console.WriteLine(castrange.ToString());
 
             //Print safespots into console
             /*if(Game.IsKeyDown(new KeyBind('O', KeyBindType.Press).Key) && !Game.IsChatOpen)
@@ -400,7 +399,7 @@ namespace Tinker_Air13
                     && Refresh.CanBeCasted()
                     && travel != null
                     && !travel.CanBeCasted()
-                    //&& me.Distance2D(fount.First().Position) <= 900
+                    && me.Distance2D(fount.First().Position) <= 900
                     && !me.IsChanneling()
                     //&& Menu.Item("Skills").GetValue<AbilityToggler>().IsEnabled(Refresh.Name)
                     && Utils.SleepCheck("Rearms"))
@@ -427,7 +426,7 @@ namespace Tinker_Air13
 					&& (!me.Modifiers.Any(y => y.Name == "modifier_bloodseeker_rupture") || (me.Distance2D(Game.MousePosition)>1325 && castrange!=0))
 					&& (me.Distance2D(Game.MousePosition) > 650+castrange+ensage_error))
 				{
-					var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1420;
+                    var safeRange = 1200 + castrange;
 					var p = Game.MousePosition;
 					
 					if (me.Distance2D(Game.MousePosition) > safeRange)
@@ -573,7 +572,7 @@ namespace Tinker_Air13
 					&& (me.Distance2D(Game.MousePosition) > 650+ castrange  + ensage_error)
 					)
 				{
-					var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1420;
+                    var safeRange = 1200 + castrange;
 					var p = Game.MousePosition;
 					
 					if (me.Distance2D(Game.MousePosition) > safeRange)
@@ -677,7 +676,7 @@ namespace Tinker_Air13
 					if (Utils.SleepCheck("FASTCOMBO"))
 					{
 						uint elsecount = 0;
-						bool EzkillCheck = EZkill(target);
+						bool EzkillCheck = EZKill(target);
 						bool magicimune = (!target.IsMagicImmune() && !target.Modifiers.Any(x => x.Name == "modifier_eul_cyclone"));
 						// soulring -> glimmer -> sheep -> veil-> ghost ->  ->   -> ethereal -> dagon ->  laser -> rocket -> shivas 
 
@@ -715,7 +714,7 @@ namespace Tinker_Air13
 							// && Utils.SleepCheck("Rearms"))
                             )
 						{
-							var safeRange = me.FindItem("item_aether_lens") == null ? 1200 : 1420;
+                            var safeRange = 1200 + castrange;
 							var p13 = Game.MousePosition;
 							
 							if (me.Distance2D(Game.MousePosition) > safeRange + ensage_error)
@@ -842,7 +841,7 @@ namespace Tinker_Air13
 							if (veil != null && veil.CanBeCasted() 
 								&& magicimune
 								&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)
-								&& target.NetworkPosition.Distance2D(me) <= 1500+castrange + ensage_error
+								&& target.NetworkPosition.Distance2D(me) <= 1600+castrange + ensage_error
 								//&& !OneHitLeft(target)
 								&& !(target.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
 								&& !target.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff")
@@ -885,8 +884,14 @@ namespace Tinker_Air13
 								&& magicimune  
 								&& (!target.Modifiers.Any(y => y.Name == "modifier_item_blade_mail_reflect") || me.IsMagicImmune())
 								&& (!target.Modifiers.Any(y => y.Name == "modifier_nyx_assassin_spiked_carapace") || me.IsMagicImmune())
-								&& (((veil == null || !veil.CanBeCasted() || target.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff") | !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name))))// && target.NetworkPosition.Distance2D(me) <= 1500 + castrange + ensage_error))// || target.NetworkPosition.Distance2D(me) > 1500 + castrange + ensage_error)
-								&& (((ethereal == null || (ethereal!=null && !ethereal.CanBeCasted()) || IsCasted(ethereal) /*|| target.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal")*/ | !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name))))//&& target.NetworkPosition.Distance2D(me) <= 800+castrange + ensage_error)) //|| target.NetworkPosition.Distance2D(me) > 800+castrange + ensage_error)
+								&& (((veil == null 
+                                    || !veil.CanBeCasted() 
+                                    || target.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff") 
+                                    | !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name))))// && target.NetworkPosition.Distance2D(me) <= 1600 + castrange + ensage_error))// || target.NetworkPosition.Distance2D(me) > 1600 + castrange + ensage_error)
+								&& (((ethereal == null 
+                                    || (ethereal!=null && !ethereal.CanBeCasted()) 
+                                    || IsCasted(ethereal) /*|| target.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal")*/ 
+                                    | !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name))))//&& target.NetworkPosition.Distance2D(me) <= 800+castrange + ensage_error)) //|| target.NetworkPosition.Distance2D(me) > 800+castrange + ensage_error)
 								&& (Laser == null ||  !Laser.CanBeCasted() || comboMode==0)
 								&& (dagon == null ||  !dagon.CanBeCasted() || comboMode==0)
 								&& !(target.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
@@ -1113,22 +1118,23 @@ namespace Tinker_Air13
 			
 
         }
-		
-		public static void AD(EventArgs args)
-		{
-			if (!Game.IsInGame || Game.IsPaused || Game.IsWatchingGame)
+
+        public static void AD(EventArgs args)
+        {
+            if (!Game.IsInGame || Game.IsPaused || Game.IsWatchingGame)
                 return;
             me = ObjectManager.LocalHero;
             if (me == null || me.ClassID != ClassID.CDOTA_Unit_Hero_Tinker)
                 return;
-		
-			//aether = me.FindItem("item_aether_lens");
-			//cyclone = me.FindItem("item_cyclone");
-			//ghost = me.FindItem("item_ghost");
+
+            //aether = me.FindItem("item_aether_lens");
+            //cyclone = me.FindItem("item_cyclone");
+            //ghost = me.FindItem("item_ghost");
             //sheep = me.FindItem("item_sheepstick");
             //atos = me.FindItem("item_rod_of_atos");
             FindItems();
 
+            //Castrange Calculation (Tinker Talent20 and Aether Lens)
             castrange = 0;
 
             var aetherLens = me.Inventory.Items.FirstOrDefault(x => x.ClassID == ClassID.CDOTA_Item_Aether_Lens);
@@ -1144,437 +1150,429 @@ namespace Tinker_Air13
                 castrange += (int)talent20.AbilitySpecialData.First(x => x.Name == "value").Value;
             }
 
-            Console.WriteLine(castrange.ToString());
-
             if (bottle != null && !me.IsInvisible() && !me.IsChanneling() && !me.Spellbook.Spells.Any(x => x.IsInAbilityPhase) && !March.IsInAbilityPhase && me.Modifiers.Any(x => x.Name == "modifier_fountain_aura_buff") && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(bottle.Name) && Utils.SleepCheck("bottle1"))
-			{
-				if(!me.Modifiers.Any(x => x.Name == "modifier_bottle_regeneration") && (me.Health < me.MaximumHealth || me.Mana < me.MaximumMana))
-					bottle.UseAbility();
-				Alies = ObjectManager.GetEntities<Hero>().Where(x => x.Team == me.Team && x != me && (x.Health < x.MaximumHealth || x.Mana < x.MaximumMana) && !x.Modifiers.Any(y => y.Name == "modifier_bottle_regeneration") && x.IsAlive && !x.IsIllusion && x.Distance2D(me) <= bottle.CastRange).ToList();
-				foreach (Hero v in Alies)
-					if (v != null)
-						bottle.UseAbility(v);
-				Utils.Sleep(255, "bottle1");
-			}
-				
-
-			var enemies = ObjectManager.GetEntities<Hero>().Where(x => x.IsVisible && x.IsAlive && x.Team == me.GetEnemyTeam() && !x.IsIllusion);
-			
-				
-			foreach (var e in enemies)
-			{
-				if (e == null)
-					return;
-				//distance = me.Distance2D(e);
-				angle = Math.Abs(e.FindAngleR() - Utils.DegreeToRadian(e.FindAngleForTurnTime(me.NetworkPosition)));
-
-				if (Menu.Item("autoDisable").GetValue<bool>() && me.IsAlive && me.IsVisibleToEnemies)
-				{		
-					
-					
-					
-					//break linken if tp
-					if (!me.IsChanneling()
-						&& me.Distance2D(e) <= 800 + castrange + ensage_error
-						&& me.Distance2D(e) >= 300 + ensage_error
-						&& e.Modifiers.Any(y => y.Name == "modifier_teleporting")
-						&& e.IsLinkensProtected()
-						&& Utils.SleepCheck("tplink")
-						)
-					{
-						if ((cyclone != null && cyclone.CanBeCasted()) || (sheep != null && sheep.CanBeCasted()))
-						{ 
-							if (atos != null && atos.CanBeCasted())
-								atos.UseAbility(e);
-							else if (me.Spellbook.SpellQ != null && me.Spellbook.SpellQ.CanBeCasted())
-								me.Spellbook.SpellQ.UseAbility(e);
-							else if (ethereal != null && ethereal.CanBeCasted())
-								ethereal.UseAbility(e);
-							else if (dagon != null && dagon.CanBeCasted())
-								dagon.UseAbility(e);
-							else if ((sheep != null && sheep.CanBeCasted()) && (cyclone != null && cyclone.CanBeCasted()))
-								sheep.UseAbility(e);
-							//else if (cyclone != null && cyclone.CanBeCasted())
-							//    cyclone.UseAbility(e);
-						}
-
-						Utils.Sleep(150, "tplink");
-					}
-
-						//break TP 
-						if (!me.IsChanneling()
-							&& me.Distance2D(e) <= 800 + castrange + ensage_error
-							&& e.Modifiers.Any(y => y.Name == "modifier_teleporting")
-							//&& e.IsChanneling()
-							&& !e.IsHexed()
-							&& !e.Modifiers.Any(y => y.Name == "modifier_eul_cyclone")
-							&& !e.IsLinkensProtected()
-							&& Utils.SleepCheck("tplink1")
-							)
-						{
-							if (sheep != null && sheep.CanBeCasted())
-								sheep.UseAbility(e);
-							else if (cyclone != null && cyclone.CanBeCasted())
-								cyclone.UseAbility(e);
-								
-							Utils.Sleep(150, "tplink1");
-						}
+            {
+                if (!me.Modifiers.Any(x => x.Name == "modifier_bottle_regeneration") && (me.Health < me.MaximumHealth || me.Mana < me.MaximumMana))
+                    bottle.UseAbility();
+                Alies = ObjectManager.GetEntities<Hero>().Where(x => x.Team == me.Team && x != me && (x.Health < x.MaximumHealth || x.Mana < x.MaximumMana) && !x.Modifiers.Any(y => y.Name == "modifier_bottle_regeneration") && x.IsAlive && !x.IsIllusion && x.Distance2D(me) <= bottle.CastRange).ToList();
+                foreach (Hero v in Alies)
+                    if (v != null)
+                        bottle.UseAbility(v);
+                Utils.Sleep(255, "bottle1");
+            }
 
 
+            var enemies = ObjectManager.GetEntities<Hero>().Where(x => x.IsVisible && x.IsAlive && x.Team == me.GetEnemyTeam() && !x.IsIllusion);
 
 
-					//break channel by Hex
-					if (!me.IsChanneling()
-						&& sheep != null && sheep.CanBeCasted()
-						&& me.Distance2D(e) <= 800 + castrange + ensage_error
-						&& !e.Modifiers.Any(y => y.Name == "modifier_eul_cyclone")
-						&& !e.IsSilenced()
-						&& !e.IsMagicImmune()
-						&& !e.IsLinkensProtected()
-						&& !e.Modifiers.Any(y => y.Name == "modifier_teleporting")
-						&& Utils.SleepCheck(e.Handle.ToString())
-						&& (e.IsChanneling()
-							|| (e.FindItem("item_blink") != null && IsCasted(e.FindItem("item_blink")))
-						//break escape spells (1 hex, 2 seal) no need cyclone
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_QueenOfPain && e.FindSpell("queenofpain_blink").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_AntiMage && e.FindSpell("antimage_blink").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_StormSpirit && e.FindSpell("storm_spirit_ball_lightning").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Shredder && e.FindSpell("shredder_timber_chain").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Weaver && e.FindSpell("weaver_time_lapse").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_FacelessVoid && e.FindSpell("faceless_void_time_walk").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Phoenix && e.FindSpell("phoenix_icarus_dive").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Magnataur && e.FindSpell("magnataur_skewer").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Morphling && e.FindSpell("morphling_waveform").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_PhantomAssassin && e.FindSpell("phantom_assassin_phantom_strike").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && e.FindSpell("riki_blink_strike").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Spectre && e.FindSpell("spectre_haunt").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Furion && e.FindSpell("furion_sprout").IsInAbilityPhase
-							
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_PhantomLancer && e.FindSpell("phantom_lancer_doppelwalk").IsInAbilityPhase
+            foreach (var e in enemies)
+            {
+                if (e == null)
+                    return;
+                //distance = me.Distance2D(e);
+                angle = Math.Abs(e.FindAngleR() - Utils.DegreeToRadian(e.FindAngleForTurnTime(me.NetworkPosition)));
+
+                if (Menu.Item("autoDisable").GetValue<bool>() && me.IsAlive && me.IsVisibleToEnemies)
+                {
+                    //break linken if tp
+                    if (!me.IsChanneling()
+                        && me.Distance2D(e) <= 800 + castrange + ensage_error
+                        && me.Distance2D(e) >= 300 + ensage_error
+                        && e.Modifiers.Any(y => y.Name == "modifier_teleporting")
+                        && e.IsLinkensProtected()
+                        && Utils.SleepCheck("tplink")
+                        )
+                    {
+                        if ((cyclone != null && cyclone.CanBeCasted()) || (sheep != null && sheep.CanBeCasted()))
+                        {
+                            if (atos != null && atos.CanBeCasted())
+                                atos.UseAbility(e);
+                            else if (me.Spellbook.SpellQ != null && me.Spellbook.SpellQ.CanBeCasted())
+                                me.Spellbook.SpellQ.UseAbility(e);
+                            else if (ethereal != null && ethereal.CanBeCasted())
+                                ethereal.UseAbility(e);
+                            else if (dagon != null && dagon.CanBeCasted())
+                                dagon.UseAbility(e);
+                            else if ((sheep != null && sheep.CanBeCasted()) && (cyclone != null && cyclone.CanBeCasted()))
+                                sheep.UseAbility(e);
+                            //else if (cyclone != null && cyclone.CanBeCasted())
+                            //    cyclone.UseAbility(e);
+                        }
+
+                        Utils.Sleep(150, "tplink");
+                    }
+
+                    //break TP 
+                    if (!me.IsChanneling()
+                        && me.Distance2D(e) <= 800 + castrange + ensage_error
+                        && e.Modifiers.Any(y => y.Name == "modifier_teleporting")
+                        //&& e.IsChanneling()
+                        && !e.IsHexed()
+                        && !e.Modifiers.Any(y => y.Name == "modifier_eul_cyclone")
+                        && !e.IsLinkensProtected()
+                        && Utils.SleepCheck("tplink1")
+                        )
+                    {
+                        if (sheep != null && sheep.CanBeCasted())
+                            sheep.UseAbility(e);
+                        else if (cyclone != null && cyclone.CanBeCasted())
+                            cyclone.UseAbility(e);
+
+                        Utils.Sleep(150, "tplink1");
+                    }
+
+                    //break channel by Hex
+                    if (!me.IsChanneling()
+                        && sheep != null && sheep.CanBeCasted()
+                        && me.Distance2D(e) <= 800 + castrange + ensage_error
+                        && !e.Modifiers.Any(y => y.Name == "modifier_eul_cyclone")
+                        && !e.IsSilenced()
+                        && !e.IsMagicImmune()
+                        && !e.IsLinkensProtected()
+                        && !e.Modifiers.Any(y => y.Name == "modifier_teleporting")
+                        && Utils.SleepCheck(e.Handle.ToString())
+                        && (e.IsChanneling()
+                            || (e.FindItem("item_blink") != null && IsCasted(e.FindItem("item_blink")))
+                            //break escape spells (1 hex, 2 seal) no need cyclone
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_QueenOfPain && e.FindSpell("queenofpain_blink").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_AntiMage && e.FindSpell("antimage_blink").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_StormSpirit && e.FindSpell("storm_spirit_ball_lightning").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Shredder && e.FindSpell("shredder_timber_chain").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Weaver && e.FindSpell("weaver_time_lapse").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_FacelessVoid && e.FindSpell("faceless_void_time_walk").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Phoenix && e.FindSpell("phoenix_icarus_dive").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Magnataur && e.FindSpell("magnataur_skewer").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Morphling && e.FindSpell("morphling_waveform").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_PhantomAssassin && e.FindSpell("phantom_assassin_phantom_strike").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && e.FindSpell("riki_blink_strike").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Spectre && e.FindSpell("spectre_haunt").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Furion && e.FindSpell("furion_sprout").IsInAbilityPhase
+
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_PhantomLancer && e.FindSpell("phantom_lancer_doppelwalk").IsInAbilityPhase
 
 
 
-							//break special (1 hex, 2 cyclone)
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && me.Modifiers.Any(y => y.Name == "modifier_riki_smoke_screen")
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_SpiritBreaker && e.Modifiers.Any(y => y.Name == "modifier_spirit_breaker_charge_of_darkness")
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Phoenix && e.Modifiers.Any(y => y.Name == "modifier_phoenix_icarus_dive")
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Magnataur && e.Modifiers.Any(y => y.Name == "modifier_magnataur_skewer_movement")
-
-
-							
-							//break rats shadow blades and invis (1 hex, 2 seal, 3 cyclone)
-							|| e.IsMelee && me.Distance2D(e) <= 350 //test
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Legion_Commander && e.FindSpell("legion_commander_duel").Cooldown < 2 && me.Distance2D(e) < 480 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Tiny && me.Distance2D(e) <= 350
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Pudge && me.Distance2D(e) <= 350
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Nyx_Assassin && me.Distance2D(e) <= 350
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_BountyHunter && me.Distance2D(e) <= 350
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Nevermore && me.Distance2D(e) <= 350 
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Weaver && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Clinkz && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Broodmother && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Slark && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Ursa && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Earthshaker && (e.Spellbook.SpellQ.Cooldown<=1 || e.Spellbook.SpellR.Cooldown<=1) 
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Alchemist && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_TrollWarlord && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-
-							//break rats blinkers (1 hex, 2 seal, 3 cyclone)
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Ursa && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_PhantomAssassin && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Spectre && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_AntiMage && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_TemplarAssassin && me.Distance2D(e) <= e.GetAttackRange()+50 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Morphling && me.Distance2D(e) <= e.GetAttackRange()+50 && !me.IsAttackImmune()
-
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_QueenOfPain && me.Distance2D(e) <= 800+castrange  + ensage_error
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Puck && me.Distance2D(e) <= 800+castrange  + ensage_error
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_StormSpirit && me.Distance2D(e) <= 800+castrange + ensage_error
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Phoenix && me.Distance2D(e) <= 800+castrange + ensage_error
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Magnataur && me.Distance2D(e) <= 800+castrange + ensage_error
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_FacelessVoid && me.Distance2D(e) <= 800+castrange + ensage_error
-
-
-							//break mass dangerous spells (1 hex, 2 seal, 3 cyclone)
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Necrolyte && e.FindSpell("necrolyte_reapers_scythe").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_FacelessVoid && e.FindSpell("faceless_void_chronosphere").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Magnataur && e.FindSpell("magnataur_reverse_polarity").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_DoomBringer && e.FindSpell("doom_bringer_doom").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Tidehunter && e.FindSpell("tidehunter_ravage").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Enigma && e.FindSpell("enigma_black_hole").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Rattletrap && e.FindSpell("rattletrap_power_cogs").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Luna && e.FindSpell("luna_eclipse").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Nevermore && e.FindSpell("nevermore_requiem").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_SpiritBreaker && e.FindSpell("spirit_breaker_nether_strike").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Naga_Siren && e.FindSpell("naga_siren_song_of_the_siren").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Medusa && e.FindSpell("medusa_stone_gaze").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Treant && e.FindSpell("treant_overgrowth").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_AntiMage && e.FindSpell("antimage_mana_void").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Warlock && e.FindSpell("warlock_rain_of_chaos").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Terrorblade && e.FindSpell("terrorblade_sunder").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_DarkSeer && e.FindSpell("dark_seer_wall_of_replica").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_DarkSeer && e.FindSpell("dark_seer_surge").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Dazzle && e.FindSpell("dazzle_shallow_grave").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Omniknight && e.FindSpell("omniknight_guardian_angel").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Omniknight && e.FindSpell("omniknight_repel").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Beastmaster && e.FindSpell("beastmaster_primal_roar").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.FindSpell("chaos_knight_reality_rift").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.FindSpell("chaos_knight_phantasm").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Life_Stealer && e.FindSpell("life_stealer_infest").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Sven && e.FindSpell("sven_gods_strength").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_DrowRanger && e.FindSpell("drow_ranger_wave_of_silence").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Nyx_Assassin && e.FindSpell("nyx_assassin_mana_burn").IsInAbilityPhase
-														
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Mirana && e.Spellbook.SpellW.IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_BountyHunter && e.Spellbook.SpellR.IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Phoenix && e.FindSpell("phoenix_icarus_dive").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_EarthSpirit && e.FindSpell("earth_spirit_magnetize").IsInAbilityPhase
-
-
-							//break stun spells (1 hex, 2 seal, 3 cyclone)
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Ogre_Magi && e.FindSpell("ogre_magi_fireblast").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Axe && e.FindSpell("axe_berserkers_call").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Lion && e.FindSpell("lion_impale").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Nyx_Assassin && e.FindSpell("nyx_assassin_impale").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Rubick && e.FindSpell("rubick_telekinesis").IsInAbilityPhase
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Rubick && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + ensage_error)
-							//|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Alchemist && e.FindSpell("alchemist_unstable_concoction_throw").IsInAbilityPhase)
-
-
-							//break flying stun spells if enemy close (1 hex, 2 seal, 3 cyclone)  have cyclone
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Sniper && e.Spellbook.SpellR.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)//e.FindSpell("sniper_assassinate").Cooldown > 0 && me.Modifiers.Any(y => y.Name == "modifier_sniper_assassinate"))
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.1 && me.Distance2D(e) <= 400)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Sven && e.Spellbook.SpellQ.IsInAbilityPhase && me.Distance2D(e) <= 300)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_SkeletonKing && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_VengefulSpirit && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)
-
-
-							//break flying stun spells if enemy close (1 hex, 2 seal, 3 cyclone)  no cyclone
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Sniper && e.Spellbook.SpellR.IsInAbilityPhase && angle <= 0.03 && (cyclone == null || !cyclone.CanBeCasted()))//e.FindSpell("sniper_assassinate").Cooldown > 0 && me.Modifiers.Any(y => y.Name == "modifier_sniper_assassinate"))
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.1 && (cyclone == null || !cyclone.CanBeCasted()))
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Sven && e.Spellbook.SpellQ.IsInAbilityPhase && (cyclone == null || !cyclone.CanBeCasted()))
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_SkeletonKing && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && (cyclone == null || !cyclone.CanBeCasted()))
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && (cyclone == null || !cyclone.CanBeCasted()))
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_VengefulSpirit && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && (cyclone == null || !cyclone.CanBeCasted()))
-						   
+                            //break special (1 hex, 2 cyclone)
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && me.Modifiers.Any(y => y.Name == "modifier_riki_smoke_screen")
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_SpiritBreaker && e.Modifiers.Any(y => y.Name == "modifier_spirit_breaker_charge_of_darkness")
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Phoenix && e.Modifiers.Any(y => y.Name == "modifier_phoenix_icarus_dive")
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Magnataur && e.Modifiers.Any(y => y.Name == "modifier_magnataur_skewer_movement")
 
 
 
-							//break common dangerous spell (1 hex, 2 seal) //no need cyclone
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Bloodseeker && e.FindSpell("bloodseeker_rupture").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Mirana && e.FindSpell("mirana_invis").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && e.FindSpell("riki_smoke_screen").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && e.FindSpell("riki_tricks_of_the_trade").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Viper && e.FindSpell("viper_viper_strike").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Chen && e.FindSpell("chen_hand_of_god").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_DeathProphet && e.FindSpell("death_prophet_silence").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_DeathProphet && e.FindSpell("death_prophet_exorcism").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Invoker // =)
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_EmberSpirit // =)
+                            //break rats shadow blades and invis (1 hex, 2 seal, 3 cyclone)
+                            || e.IsMelee && me.Distance2D(e) <= 350 //test
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Legion_Commander && e.FindSpell("legion_commander_duel").Cooldown < 2 && me.Distance2D(e) < 480 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Tiny && me.Distance2D(e) <= 350
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Pudge && me.Distance2D(e) <= 350
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Nyx_Assassin && me.Distance2D(e) <= 350
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_BountyHunter && me.Distance2D(e) <= 350
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Nevermore && me.Distance2D(e) <= 350
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Weaver && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Clinkz && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Broodmother && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Slark && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Ursa && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Earthshaker && (e.Spellbook.SpellQ.Cooldown <= 1 || e.Spellbook.SpellR.Cooldown <= 1)
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Alchemist && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_TrollWarlord && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+
+                            //break rats blinkers (1 hex, 2 seal, 3 cyclone)
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Ursa && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_PhantomAssassin && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Spectre && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_AntiMage && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_TemplarAssassin && me.Distance2D(e) <= e.GetAttackRange() + 50 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Morphling && me.Distance2D(e) <= e.GetAttackRange() + 50 && !me.IsAttackImmune()
+
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_QueenOfPain && me.Distance2D(e) <= 800 + castrange + ensage_error
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Puck && me.Distance2D(e) <= 800 + castrange + ensage_error
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_StormSpirit && me.Distance2D(e) <= 800 + castrange + ensage_error
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Phoenix && me.Distance2D(e) <= 800 + castrange + ensage_error
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Magnataur && me.Distance2D(e) <= 800 + castrange + ensage_error
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_FacelessVoid && me.Distance2D(e) <= 800 + castrange + ensage_error
 
 
-							
-							//break hex spell
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Lion && e.Spellbook.SpellW.Level > 0 && e.Spellbook.SpellW.Cooldown < 1 && me.Distance2D(e) < e.Spellbook.SpellW.GetCastRange()  + ensage_error)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_ShadowShaman && e.Spellbook.SpellW.Level > 0 && e.Spellbook.SpellW.Cooldown < 1 && me.Distance2D(e) < e.Spellbook.SpellW.GetCastRange()  + ensage_error)
-							|| (e.FindItem("item_sheepstick") != null && e.FindItem("item_sheepstick").Cooldown < 1 && me.Distance2D(e) < e.FindItem("item_sheepstick").GetCastRange()  + ensage_error)
+                            //break mass dangerous spells (1 hex, 2 seal, 3 cyclone)
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Necrolyte && e.FindSpell("necrolyte_reapers_scythe").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_FacelessVoid && e.FindSpell("faceless_void_chronosphere").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Magnataur && e.FindSpell("magnataur_reverse_polarity").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_DoomBringer && e.FindSpell("doom_bringer_doom").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Tidehunter && e.FindSpell("tidehunter_ravage").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Enigma && e.FindSpell("enigma_black_hole").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Rattletrap && e.FindSpell("rattletrap_power_cogs").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Luna && e.FindSpell("luna_eclipse").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Nevermore && e.FindSpell("nevermore_requiem").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_SpiritBreaker && e.FindSpell("spirit_breaker_nether_strike").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Naga_Siren && e.FindSpell("naga_siren_song_of_the_siren").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Medusa && e.FindSpell("medusa_stone_gaze").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Treant && e.FindSpell("treant_overgrowth").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_AntiMage && e.FindSpell("antimage_mana_void").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Warlock && e.FindSpell("warlock_rain_of_chaos").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Terrorblade && e.FindSpell("terrorblade_sunder").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_DarkSeer && e.FindSpell("dark_seer_wall_of_replica").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_DarkSeer && e.FindSpell("dark_seer_surge").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Dazzle && e.FindSpell("dazzle_shallow_grave").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Omniknight && e.FindSpell("omniknight_guardian_angel").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Omniknight && e.FindSpell("omniknight_repel").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Beastmaster && e.FindSpell("beastmaster_primal_roar").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.FindSpell("chaos_knight_reality_rift").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.FindSpell("chaos_knight_phantasm").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Life_Stealer && e.FindSpell("life_stealer_infest").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Sven && e.FindSpell("sven_gods_strength").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_DrowRanger && e.FindSpell("drow_ranger_wave_of_silence").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Nyx_Assassin && e.FindSpell("nyx_assassin_mana_burn").IsInAbilityPhase
+
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Mirana && e.Spellbook.SpellW.IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_BountyHunter && e.Spellbook.SpellR.IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Phoenix && e.FindSpell("phoenix_icarus_dive").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_EarthSpirit && e.FindSpell("earth_spirit_magnetize").IsInAbilityPhase
+
+
+                            //break stun spells (1 hex, 2 seal, 3 cyclone)
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Ogre_Magi && e.FindSpell("ogre_magi_fireblast").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Axe && e.FindSpell("axe_berserkers_call").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Lion && e.FindSpell("lion_impale").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Nyx_Assassin && e.FindSpell("nyx_assassin_impale").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Rubick && e.FindSpell("rubick_telekinesis").IsInAbilityPhase
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Rubick && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + ensage_error)
+                            //|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Alchemist && e.FindSpell("alchemist_unstable_concoction_throw").IsInAbilityPhase)
+
+
+                            //break flying stun spells if enemy close (1 hex, 2 seal, 3 cyclone)  have cyclone
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Sniper && e.Spellbook.SpellR.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)//e.FindSpell("sniper_assassinate").Cooldown > 0 && me.Modifiers.Any(y => y.Name == "modifier_sniper_assassinate"))
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.1 && me.Distance2D(e) <= 400)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Sven && e.Spellbook.SpellQ.IsInAbilityPhase && me.Distance2D(e) <= 300)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_SkeletonKing && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_VengefulSpirit && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)
+
+
+                            //break flying stun spells if enemy close (1 hex, 2 seal, 3 cyclone)  no cyclone
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Sniper && e.Spellbook.SpellR.IsInAbilityPhase && angle <= 0.03 && (cyclone == null || !cyclone.CanBeCasted()))//e.FindSpell("sniper_assassinate").Cooldown > 0 && me.Modifiers.Any(y => y.Name == "modifier_sniper_assassinate"))
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.1 && (cyclone == null || !cyclone.CanBeCasted()))
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Sven && e.Spellbook.SpellQ.IsInAbilityPhase && (cyclone == null || !cyclone.CanBeCasted()))
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_SkeletonKing && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && (cyclone == null || !cyclone.CanBeCasted()))
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && (cyclone == null || !cyclone.CanBeCasted()))
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_VengefulSpirit && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && (cyclone == null || !cyclone.CanBeCasted()))
 
 
 
-							
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Omniknight && e.FindSpell("omniknight_purification").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Ursa && e.FindSpell("ursa_overpower").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Silencer && e.FindSpell("silencer_last_word").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Silencer && e.FindSpell("silencer_global_silence").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_ShadowShaman && e.FindSpell("shadow_shaman_mass_serpent_ward").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_QueenOfPain && e.FindSpell("queenofpain_sonic_wave").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Obsidian_Destroyer && e.FindSpell("obsidian_destroyer_astral_imprisonment").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Obsidian_Destroyer && e.FindSpell("obsidian_destroyer_sanity_eclipse").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Pugna && e.FindSpell("pugna_nether_ward").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Lich && e.FindSpell("lich_chain_frost").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_StormSpirit && e.FindSpell("storm_spirit_electric_vortex").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Zuus && e.FindSpell("zuus_thundergods_wrath").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Brewmaster && e.FindSpell("brewmaster_primal_split").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Bane && e.FindSpell("bane_fiends_grip").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Bane && e.FindSpell("bane_nightmare").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Undying && e.FindSpell("undying_tombstone").IsInAbilityPhase
 
-							)
-						)
-					{
-						sheep.UseAbility(e);
-						Utils.Sleep(200, e.Handle.ToString());
-					}
+                            //break common dangerous spell (1 hex, 2 seal) //no need cyclone
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Bloodseeker && e.FindSpell("bloodseeker_rupture").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Mirana && e.FindSpell("mirana_invis").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && e.FindSpell("riki_smoke_screen").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && e.FindSpell("riki_tricks_of_the_trade").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Viper && e.FindSpell("viper_viper_strike").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Chen && e.FindSpell("chen_hand_of_god").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_DeathProphet && e.FindSpell("death_prophet_silence").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_DeathProphet && e.FindSpell("death_prophet_exorcism").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Invoker // =)
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_EmberSpirit // =)
 
 
-					//break channel by cyclone if not hex
-					if (!me.IsChanneling()
-						&& cyclone != null 
-						&& cyclone.CanBeCasted()
-						&& (sheep == null || !sheep.CanBeCasted() || e.IsLinkensProtected())
-						&& me.Distance2D(e) <= 575+castrange + ensage_error
-						&& !e.IsHexed()
-						&& !e.IsMagicImmune()
-						&& !e.IsSilenced()
-						&& !e.Modifiers.Any(y => y.Name == "modifier_skywrath_mystic_flare_aura_effect")
 
-						&& !e.Modifiers.Any(y => y.Name == "modifier_teleporting")
-						&& Utils.SleepCheck(e.Handle.ToString())
-						&& (e.IsChanneling()
-							|| (e.FindItem("item_blink") != null && IsCasted(e.FindItem("item_blink")))
-
-							//break rats shadow blades and invis if they appear close(1 hex, 2 seal, 3 cyclone)
-							|| (e.IsMelee && me.Distance2D(e) <= 350 && (me.Spellbook.SpellR == null || !me.Spellbook.SpellR.CanBeCasted() )) //test
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Legion_Commander && e.FindSpell("legion_commander_duel").Cooldown < 2 && me.Distance2D(e) < 480 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Tiny && me.Distance2D(e) <= 350
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Pudge && me.Distance2D(e) <= 350
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Nyx_Assassin && me.Distance2D(e) <= 350
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_BountyHunter && me.Distance2D(e) <= 350
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Weaver && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Clinkz && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Broodmother && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Slark && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Earthshaker && (e.Spellbook.SpellQ.Cooldown <= 1 || e.Spellbook.SpellR.Cooldown <= 1) 
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Alchemist && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_TrollWarlord && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
-
-							
-							//break rats blinkers (1 hex, 2 seal, 3 cyclone)
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_QueenOfPain && me.Distance2D(e) <= 575+castrange  + ensage_error
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Puck && me.Distance2D(e) <= 575+castrange  + ensage_error
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_StormSpirit && me.Distance2D(e) <= 575+castrange + ensage_error
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_FacelessVoid && me.Distance2D(e) <= 575+castrange + ensage_error
-							
-							
-							//break mass dangerous spells (1 hex, 2 seal, 3 cyclone)
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Necrolyte && e.FindSpell("necrolyte_reapers_scythe").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_FacelessVoid && e.FindSpell("faceless_void_chronosphere").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Magnataur && e.FindSpell("magnataur_reverse_polarity").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_DoomBringer && e.FindSpell("doom_bringer_doom").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Tidehunter && e.FindSpell("tidehunter_ravage").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Enigma && e.FindSpell("enigma_black_hole").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Rattletrap && e.FindSpell("rattletrap_power_cogs").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Luna && e.FindSpell("luna_eclipse").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Nevermore && e.FindSpell("nevermore_requiem").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_SpiritBreaker && e.FindSpell("spirit_breaker_nether_strike").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Naga_Siren && e.FindSpell("naga_siren_song_of_the_siren").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Medusa && e.FindSpell("medusa_stone_gaze").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Treant && e.FindSpell("treant_overgrowth").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_AntiMage && e.FindSpell("antimage_mana_void").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Warlock && e.FindSpell("warlock_rain_of_chaos").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Terrorblade && e.FindSpell("terrorblade_sunder").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_DarkSeer && e.FindSpell("dark_seer_wall_of_replica").IsInAbilityPhase
-							//|| e.ClassID == ClassID.CDOTA_Unit_Hero_DarkSeer && e.FindSpell("dark_seer_surge").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Dazzle && e.FindSpell("dazzle_shallow_grave").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Omniknight && e.FindSpell("omniknight_guardian_angel").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Omniknight && e.FindSpell("omniknight_repel").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Beastmaster && e.FindSpell("beastmaster_primal_roar").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.FindSpell("chaos_knight_reality_rift").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.FindSpell("chaos_knight_phantasm").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Life_Stealer && e.FindSpell("life_stealer_infest").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Sven && e.FindSpell("sven_gods_strength").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_DrowRanger && e.FindSpell("drow_ranger_wave_of_silence").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Nyx_Assassin && e.FindSpell("nyx_assassin_mana_burn").IsInAbilityPhase
-
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Phoenix && e.FindSpell("phoenix_icarus_dive").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_EarthSpirit && e.FindSpell("earth_spirit_magnetize").IsInAbilityPhase
-							
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Furion && e.FindSpell("furion_sprout").IsInAbilityPhase
+                            //break hex spell
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Lion && e.Spellbook.SpellW.Level > 0 && e.Spellbook.SpellW.Cooldown < 1 && me.Distance2D(e) < e.Spellbook.SpellW.GetCastRange() + ensage_error)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_ShadowShaman && e.Spellbook.SpellW.Level > 0 && e.Spellbook.SpellW.Cooldown < 1 && me.Distance2D(e) < e.Spellbook.SpellW.GetCastRange() + ensage_error)
+                            || (e.FindItem("item_sheepstick") != null && e.FindItem("item_sheepstick").Cooldown < 1 && me.Distance2D(e) < e.FindItem("item_sheepstick").GetCastRange() + ensage_error)
 
 
-							//break stun spells (1 hex, 2 seal, 3 cyclone)
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Ogre_Magi && e.FindSpell("ogre_magi_fireblast").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Axe && e.FindSpell("axe_berserkers_call").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Lion && e.FindSpell("lion_impale").IsInAbilityPhase
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Nyx_Assassin && e.FindSpell("nyx_assassin_impale").IsInAbilityPhase      
-							|| e.ClassID == ClassID.CDOTA_Unit_Hero_Rubick && e.FindSpell("rubick_telekinesis").IsInAbilityPhase
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Rubick && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + ensage_error)
-
-							
-							//break hex spell
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Lion && e.Spellbook.SpellW.Level > 0 && e.Spellbook.SpellW.Cooldown < 1 && me.Distance2D(e) < e.Spellbook.SpellW.GetCastRange() + ensage_error)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_ShadowShaman && e.Spellbook.SpellW.Level > 0 && e.Spellbook.SpellW.Cooldown < 1 && me.Distance2D(e) < e.Spellbook.SpellW.GetCastRange() + ensage_error)
-							|| (e.FindItem("item_sheepstick") != null && e.FindItem("item_sheepstick").Cooldown < 1 && me.Distance2D(e) < e.FindItem("item_sheepstick").GetCastRange() + ensage_error)
-
-							
-							//break flying stun spells if enemy close (1 hex, 2 seal, 3 cyclone)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Sniper && e.Spellbook.SpellR.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)//e.FindSpell("sniper_assassinate").Cooldown > 0 && me.Modifiers.Any(y => y.Name == "modifier_sniper_assassinate"))
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.1 && me.Distance2D(e) <= 400)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Sven && e.Spellbook.SpellQ.IsInAbilityPhase && me.Distance2D(e) <= 300)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_SkeletonKing && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_VengefulSpirit && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)
-							
-							)
-						)
-					{
-						cyclone.UseAbility(e);
-						Utils.Sleep(50, e.Handle.ToString());
-					}
-					
-							
-					
-					
-					//cyclone dodge	
-					if (Utils.SleepCheck("item_cyclone") && cyclone != null && cyclone.CanBeCasted())
-					{
-						//use on me
-						var mod =
-							me.Modifiers.FirstOrDefault(
-								x =>
-									x.Name == "modifier_lina_laguna_blade" ||
-								   
-									//x.Name == "modifier_orchid_malevolence_debuff" || 
-									//x.Name == "modifier_skywrath_mage_ancient_seal" ||
-
-									x.Name == "modifier_lion_finger_of_death");
-							
-						if (cyclone != null && cyclone.CanBeCasted() && 
-							(mod != null
-							|| (me.IsRooted() && !me.Modifiers.Any(y => y.Name == "modifier_razor_unstablecurrent_slow")  )
-							//|| e.ClassID == ClassID.CDOTA_Unit_Hero_Zuus && e.FindSpell("zuus_thundergods_wrath").IsInAbilityPhase  //zuus can cancel
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Huskar && IsCasted(e.Spellbook.SpellR) && angle <= 0.15 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 250) //( (e.FindSpell("huskar_life_break").Cooldown >= 3 && e.AghanimState()) || (e.FindSpell("huskar_life_break").Cooldown >= 11 && !e.AghanimState())) && me.Distance2D(e) <= 400)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Juggernaut && e.Modifiers.Any(y => y.Name == "modifier_juggernaut_omnislash") && me.Distance2D(e) <= 300  && !me.IsAttackImmune())// && (ghost == null || !ghost.CanBeCasted()) && (ghost == null || !ghost.CanBeCasted())&& !me.Modifiers.Any(y => y.Name == "modifier_item_ghost_scepter")
 
 
-							//dodge flying stuns
-							|| (e.FindItem("item_ethereal_blade")!=null && IsCasted(e.FindItem("item_ethereal_blade")) && angle <= 0.1 && me.Distance2D(e) < e.FindItem("item_ethereal_blade").GetCastRange() + 250)
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Omniknight && e.FindSpell("omniknight_purification").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Ursa && e.FindSpell("ursa_overpower").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Silencer && e.FindSpell("silencer_last_word").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Silencer && e.FindSpell("silencer_global_silence").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_ShadowShaman && e.FindSpell("shadow_shaman_mass_serpent_ward").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_QueenOfPain && e.FindSpell("queenofpain_sonic_wave").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Obsidian_Destroyer && e.FindSpell("obsidian_destroyer_astral_imprisonment").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Obsidian_Destroyer && e.FindSpell("obsidian_destroyer_sanity_eclipse").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Pugna && e.FindSpell("pugna_nether_ward").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Lich && e.FindSpell("lich_chain_frost").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_StormSpirit && e.FindSpell("storm_spirit_electric_vortex").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Zuus && e.FindSpell("zuus_thundergods_wrath").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Brewmaster && e.FindSpell("brewmaster_primal_split").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Bane && e.FindSpell("bane_fiends_grip").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Bane && e.FindSpell("bane_nightmare").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Undying && e.FindSpell("undying_tombstone").IsInAbilityPhase
 
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Sniper && IsCasted(e.Spellbook.SpellR) && me.Distance2D(e) > 300 && me.Modifiers.Any(y => y.Name == "modifier_sniper_assassinate"))//e.FindSpell("sniper_assassinate").Cooldown > 0 && me.Modifiers.Any(y => y.Name == "modifier_sniper_assassinate"))
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Tusk && angle <= 0.35 && e.Modifiers.Any(y => y.Name == "modifier_tusk_snowball_movement") && me.Distance2D(e) <= 575)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && IsCasted(e.Spellbook.SpellQ) && angle <= 0.12 && me.Distance2D(e) > 400 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 550)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Sven && IsCasted(e.Spellbook.SpellQ) && angle <= 0.3 && me.Distance2D(e) > 300 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 500)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_SkeletonKing && IsCasted(e.Spellbook.SpellQ) && angle <= 0.1 && me.Distance2D(e) > 300 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 350)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && IsCasted(e.Spellbook.SpellQ) && angle <= 0.1 && me.Distance2D(e) > 300 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 350)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_VengefulSpirit && IsCasted(e.Spellbook.SpellQ) && angle <= 0.1 && me.Distance2D(e) > 300 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 350)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Alchemist && e.FindSpell("alchemist_unstable_concoction_throw").IsInAbilityPhase && angle <= 0.3 && me.Distance2D(e) < e.FindSpell("alchemist_unstable_concoction_throw").GetCastRange() + 500)
+                            )
+                        )
+                    {
+                        sheep.UseAbility(e);
+                        Utils.Sleep(200, e.Handle.ToString());
+                    }
 
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Viper && IsCasted(e.Spellbook.SpellR) && angle <= 0.1 && me.Distance2D(e) < e.Spellbook.SpellR.GetCastRange() + 350)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_PhantomLancer && IsCasted(e.Spellbook.SpellQ) && angle <= 0.1 && me.Distance2D(e) > 300 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 350)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Morphling && IsCasted(e.Spellbook.SpellW) && angle <= 0.1  && me.Distance2D(e) < e.Spellbook.SpellW.GetCastRange() + 350)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Tidehunter && IsCasted(e.Spellbook.SpellQ) && angle <= 0.1 && me.Distance2D(e) > 300  && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 150)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Visage && IsCasted(e.Spellbook.SpellW) && angle <= 0.1 && me.Distance2D(e) > 300  && me.Distance2D(e) < e.Spellbook.SpellW.GetCastRange() + 250)
-							|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Lich && IsCasted(e.Spellbook.SpellR) && angle <= 0.5  && me.Distance2D(e) < e.Spellbook.SpellR.GetCastRange() + 350)
 
-							
-							//free silence
-							|| (me.IsSilenced() && !me.IsHexed() && !me.Modifiers.Any(y => y.Name == "modifier_doom_bringer_doom") && !me.Modifiers.Any(y => y.Name == "modifier_riki_smoke_screen")&& !me.Modifiers.Any(y => y.Name == "modifier_disruptor_static_storm")))
-							
-							//free debuff
-							|| me.Modifiers.Any(y => y.Name == "modifier_oracle_fortunes_end_purge") 
-							|| me.Modifiers.Any(y => y.Name == "modifier_life_stealer_open_wounds") 
-							)
-						{
-							cyclone.UseAbility(me);
-							Utils.Sleep(150, "item_cyclone");
-							return;
-						}
+                    //break channel by cyclone if not hex
+                    if (!me.IsChanneling()
+                        && cyclone != null
+                        && cyclone.CanBeCasted()
+                        && (sheep == null || !sheep.CanBeCasted() || e.IsLinkensProtected())
+                        && me.Distance2D(e) <= 575 + castrange + ensage_error
+                        && !e.IsHexed()
+                        && !e.IsMagicImmune()
+                        && !e.IsSilenced()
+                        && !e.Modifiers.Any(y => y.Name == "modifier_skywrath_mystic_flare_aura_effect")
 
-						/*
+                        && !e.Modifiers.Any(y => y.Name == "modifier_teleporting")
+                        && Utils.SleepCheck(e.Handle.ToString())
+                        && (e.IsChanneling()
+                            || (e.FindItem("item_blink") != null && IsCasted(e.FindItem("item_blink")))
+
+                            //break rats shadow blades and invis if they appear close(1 hex, 2 seal, 3 cyclone)
+                            || (e.IsMelee && me.Distance2D(e) <= 350 && (me.Spellbook.SpellR == null || !me.Spellbook.SpellR.CanBeCasted())) //test
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Legion_Commander && e.FindSpell("legion_commander_duel").Cooldown < 2 && me.Distance2D(e) < 480 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Tiny && me.Distance2D(e) <= 350
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Pudge && me.Distance2D(e) <= 350
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Nyx_Assassin && me.Distance2D(e) <= 350
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_BountyHunter && me.Distance2D(e) <= 350
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Weaver && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Clinkz && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Broodmother && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Slark && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Earthshaker && (e.Spellbook.SpellQ.Cooldown <= 1 || e.Spellbook.SpellR.Cooldown <= 1)
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Alchemist && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_TrollWarlord && me.Distance2D(e) <= 350 && !me.IsAttackImmune()
+
+
+                            //break rats blinkers (1 hex, 2 seal, 3 cyclone)
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_QueenOfPain && me.Distance2D(e) <= 575 + castrange + ensage_error
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Puck && me.Distance2D(e) <= 575 + castrange + ensage_error
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_StormSpirit && me.Distance2D(e) <= 575 + castrange + ensage_error
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_FacelessVoid && me.Distance2D(e) <= 575 + castrange + ensage_error
+
+
+                            //break mass dangerous spells (1 hex, 2 seal, 3 cyclone)
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Necrolyte && e.FindSpell("necrolyte_reapers_scythe").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_FacelessVoid && e.FindSpell("faceless_void_chronosphere").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Magnataur && e.FindSpell("magnataur_reverse_polarity").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_DoomBringer && e.FindSpell("doom_bringer_doom").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Tidehunter && e.FindSpell("tidehunter_ravage").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Enigma && e.FindSpell("enigma_black_hole").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Rattletrap && e.FindSpell("rattletrap_power_cogs").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Luna && e.FindSpell("luna_eclipse").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Nevermore && e.FindSpell("nevermore_requiem").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_SpiritBreaker && e.FindSpell("spirit_breaker_nether_strike").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Naga_Siren && e.FindSpell("naga_siren_song_of_the_siren").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Medusa && e.FindSpell("medusa_stone_gaze").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Treant && e.FindSpell("treant_overgrowth").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_AntiMage && e.FindSpell("antimage_mana_void").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Warlock && e.FindSpell("warlock_rain_of_chaos").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Terrorblade && e.FindSpell("terrorblade_sunder").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_DarkSeer && e.FindSpell("dark_seer_wall_of_replica").IsInAbilityPhase
+                            //|| e.ClassID == ClassID.CDOTA_Unit_Hero_DarkSeer && e.FindSpell("dark_seer_surge").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Dazzle && e.FindSpell("dazzle_shallow_grave").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Omniknight && e.FindSpell("omniknight_guardian_angel").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Omniknight && e.FindSpell("omniknight_repel").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Beastmaster && e.FindSpell("beastmaster_primal_roar").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.FindSpell("chaos_knight_reality_rift").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.FindSpell("chaos_knight_phantasm").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Life_Stealer && e.FindSpell("life_stealer_infest").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Sven && e.FindSpell("sven_gods_strength").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_DrowRanger && e.FindSpell("drow_ranger_wave_of_silence").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Nyx_Assassin && e.FindSpell("nyx_assassin_mana_burn").IsInAbilityPhase
+
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Phoenix && e.FindSpell("phoenix_icarus_dive").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_EarthSpirit && e.FindSpell("earth_spirit_magnetize").IsInAbilityPhase
+
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Furion && e.FindSpell("furion_sprout").IsInAbilityPhase
+
+
+                            //break stun spells (1 hex, 2 seal, 3 cyclone)
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Ogre_Magi && e.FindSpell("ogre_magi_fireblast").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Axe && e.FindSpell("axe_berserkers_call").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Lion && e.FindSpell("lion_impale").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Nyx_Assassin && e.FindSpell("nyx_assassin_impale").IsInAbilityPhase
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Rubick && e.FindSpell("rubick_telekinesis").IsInAbilityPhase
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Rubick && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + ensage_error)
+
+
+                            //break hex spell
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Lion && e.Spellbook.SpellW.Level > 0 && e.Spellbook.SpellW.Cooldown < 1 && me.Distance2D(e) < e.Spellbook.SpellW.GetCastRange() + ensage_error)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_ShadowShaman && e.Spellbook.SpellW.Level > 0 && e.Spellbook.SpellW.Cooldown < 1 && me.Distance2D(e) < e.Spellbook.SpellW.GetCastRange() + ensage_error)
+                            || (e.FindItem("item_sheepstick") != null && e.FindItem("item_sheepstick").Cooldown < 1 && me.Distance2D(e) < e.FindItem("item_sheepstick").GetCastRange() + ensage_error)
+
+
+                            //break flying stun spells if enemy close (1 hex, 2 seal, 3 cyclone)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Sniper && e.Spellbook.SpellR.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)//e.FindSpell("sniper_assassinate").Cooldown > 0 && me.Modifiers.Any(y => y.Name == "modifier_sniper_assassinate"))
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.1 && me.Distance2D(e) <= 400)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Sven && e.Spellbook.SpellQ.IsInAbilityPhase && me.Distance2D(e) <= 300)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_SkeletonKing && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_VengefulSpirit && e.Spellbook.SpellQ.IsInAbilityPhase && angle <= 0.03 && me.Distance2D(e) <= 300)
+
+                            )
+                        )
+                    {
+                        cyclone.UseAbility(e);
+                        Utils.Sleep(50, e.Handle.ToString());
+                    }
+
+
+
+
+                    //cyclone dodge	
+                    if (Utils.SleepCheck("item_cyclone") && cyclone != null && cyclone.CanBeCasted())
+                    {
+                        //use on me
+                        var mod =
+                            me.Modifiers.FirstOrDefault(
+                                x =>
+                                    x.Name == "modifier_lina_laguna_blade" ||
+
+                                    //x.Name == "modifier_orchid_malevolence_debuff" || 
+                                    //x.Name == "modifier_skywrath_mage_ancient_seal" ||
+
+                                    x.Name == "modifier_lion_finger_of_death");
+
+                        if (cyclone != null && cyclone.CanBeCasted() &&
+                            (mod != null
+                            || (me.IsRooted() && !me.Modifiers.Any(y => y.Name == "modifier_razor_unstablecurrent_slow"))
+                            //|| e.ClassID == ClassID.CDOTA_Unit_Hero_Zuus && e.FindSpell("zuus_thundergods_wrath").IsInAbilityPhase  //zuus can cancel
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Huskar && IsCasted(e.Spellbook.SpellR) && angle <= 0.15 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 250) //( (e.FindSpell("huskar_life_break").Cooldown >= 3 && e.AghanimState()) || (e.FindSpell("huskar_life_break").Cooldown >= 11 && !e.AghanimState())) && me.Distance2D(e) <= 400)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Juggernaut && e.Modifiers.Any(y => y.Name == "modifier_juggernaut_omnislash") && me.Distance2D(e) <= 300 && !me.IsAttackImmune())// && (ghost == null || !ghost.CanBeCasted()) && (ghost == null || !ghost.CanBeCasted())&& !me.Modifiers.Any(y => y.Name == "modifier_item_ghost_scepter")
+
+
+                            //dodge flying stuns
+                            || (e.FindItem("item_ethereal_blade") != null && IsCasted(e.FindItem("item_ethereal_blade")) && angle <= 0.1 && me.Distance2D(e) < e.FindItem("item_ethereal_blade").GetCastRange() + 250)
+
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Sniper && IsCasted(e.Spellbook.SpellR) && me.Distance2D(e) > 300 && me.Modifiers.Any(y => y.Name == "modifier_sniper_assassinate"))//e.FindSpell("sniper_assassinate").Cooldown > 0 && me.Modifiers.Any(y => y.Name == "modifier_sniper_assassinate"))
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Tusk && angle <= 0.35 && e.Modifiers.Any(y => y.Name == "modifier_tusk_snowball_movement") && me.Distance2D(e) <= 575)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && IsCasted(e.Spellbook.SpellQ) && angle <= 0.12 && me.Distance2D(e) > 400 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 550)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Sven && IsCasted(e.Spellbook.SpellQ) && angle <= 0.3 && me.Distance2D(e) > 300 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 500)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_SkeletonKing && IsCasted(e.Spellbook.SpellQ) && angle <= 0.1 && me.Distance2D(e) > 300 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 350)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_ChaosKnight && IsCasted(e.Spellbook.SpellQ) && angle <= 0.1 && me.Distance2D(e) > 300 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 350)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_VengefulSpirit && IsCasted(e.Spellbook.SpellQ) && angle <= 0.1 && me.Distance2D(e) > 300 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 350)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Alchemist && e.FindSpell("alchemist_unstable_concoction_throw").IsInAbilityPhase && angle <= 0.3 && me.Distance2D(e) < e.FindSpell("alchemist_unstable_concoction_throw").GetCastRange() + 500)
+
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Viper && IsCasted(e.Spellbook.SpellR) && angle <= 0.1 && me.Distance2D(e) < e.Spellbook.SpellR.GetCastRange() + 350)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_PhantomLancer && IsCasted(e.Spellbook.SpellQ) && angle <= 0.1 && me.Distance2D(e) > 300 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 350)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Morphling && IsCasted(e.Spellbook.SpellW) && angle <= 0.1 && me.Distance2D(e) < e.Spellbook.SpellW.GetCastRange() + 350)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Tidehunter && IsCasted(e.Spellbook.SpellQ) && angle <= 0.1 && me.Distance2D(e) > 300 && me.Distance2D(e) < e.Spellbook.SpellQ.GetCastRange() + 150)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Visage && IsCasted(e.Spellbook.SpellW) && angle <= 0.1 && me.Distance2D(e) > 300 && me.Distance2D(e) < e.Spellbook.SpellW.GetCastRange() + 250)
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Lich && IsCasted(e.Spellbook.SpellR) && angle <= 0.5 && me.Distance2D(e) < e.Spellbook.SpellR.GetCastRange() + 350)
+
+
+                            //free silence
+                            || (me.IsSilenced() && !me.IsHexed() && !me.Modifiers.Any(y => y.Name == "modifier_doom_bringer_doom") && !me.Modifiers.Any(y => y.Name == "modifier_riki_smoke_screen") && !me.Modifiers.Any(y => y.Name == "modifier_disruptor_static_storm")))
+
+                            //free debuff
+                            || me.Modifiers.Any(y => y.Name == "modifier_oracle_fortunes_end_purge")
+                            || me.Modifiers.Any(y => y.Name == "modifier_life_stealer_open_wounds")
+                            )
+                        {
+                            cyclone.UseAbility(me);
+                            Utils.Sleep(150, "item_cyclone");
+                            return;
+                        }
+
+                        /*
 						//use on enemy cyclone
 						else if (cyclone != null 
 								&& cyclone.CanBeCasted() 
@@ -1604,370 +1602,349 @@ namespace Tinker_Air13
 
 						}
 						*/
-						
-
-					}
-					
-					
-					
-					
-					//Laser dodge close enemy
-					if (
-										Laser != null
-										&& Laser.CanBeCasted()
-										&& (sheep == null || !sheep.CanBeCasted())
-										&& !me.IsAttackImmune()
-										&& !e.IsHexed()
-										&& !e.IsMagicImmune()
-										&& angle <= 0.03
-										&& ( (e.IsMelee && me.Position.Distance2D(e) < 250)
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_TemplarAssassin && me.Distance2D(e) <= e.GetAttackRange()+50
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_TrollWarlord && me.Distance2D(e) <= e.GetAttackRange()+50
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_Clinkz && me.Distance2D(e) <= e.GetAttackRange()+50
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_Weaver && me.Distance2D(e) <= e.GetAttackRange()+50
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_Huskar && me.Distance2D(e) <= e.GetAttackRange()+50
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_Nevermore && me.Distance2D(e) <= e.GetAttackRange()+50
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && me.Distance2D(e) <= e.GetAttackRange()+50 && IsCasted(e.Spellbook.SpellR)// && e.Modifiers.Any(y => y.Name == "modifier_windrunner_focusfire"))
-											)
-										&& e.IsAttacking() 
-										&& Utils.SleepCheck("Ghost"))
-									{
-										Laser.UseAbility(e);
-										Utils.Sleep(150, "Ghost");
-									}
-									/*
-									else if (Laser != null
-											&& Laser.CanBeCasted()
-											&& !me.IsAttackImmune()
-											&& e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && IsCasted(e.Spellbook.SpellR)//&& e.Modifiers.Any(y => y.Name == "modifier_windrunner_focusfire")
-											//&& e.IsAttacking() 
-										   && angle <= 0.03
-											&& Utils.SleepCheck("Ghost")
-											)
-									{
-										ghost.UseAbility();
-										Utils.Sleep(150, "Ghost");
-									}*/
-					
-
-					//ghost dodge close enemy
-					if (
-										ghost != null
-										&& ghost.CanBeCasted()
-										&& (sheep == null || !sheep.CanBeCasted())
-										&& (Laser == null || !Laser.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_juggernaut_omnislash"))
-										&& !me.IsAttackImmune()
-										&& !e.IsHexed()
-										&& (!e.Modifiers.Any(y => y.Name == "modifier_tinker_laser_blind") || e.Modifiers.Any(y => y.Name == "modifier_juggernaut_omnislash"))
-										&& angle <= 0.03
-										&& ((e.IsMelee && me.Position.Distance2D(e) < 250)
-											&& e.ClassID != ClassID.CDOTA_Unit_Hero_Tiny
-											&& e.ClassID != ClassID.CDOTA_Unit_Hero_Shredder
-											&& e.ClassID != ClassID.CDOTA_Unit_Hero_Nyx_Assassin
-											&& e.ClassID != ClassID.CDOTA_Unit_Hero_Meepo
-											&& e.ClassID != ClassID.CDOTA_Unit_Hero_Earthshaker
-											&& e.ClassID != ClassID.CDOTA_Unit_Hero_Centaur
-											
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_TemplarAssassin && me.Distance2D(e) <= e.GetAttackRange()+50
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_TrollWarlord && me.Distance2D(e) <= e.GetAttackRange()+50
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_Clinkz && me.Distance2D(e) <= e.GetAttackRange()+50
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_Weaver && me.Distance2D(e) <= e.GetAttackRange()+50
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_Huskar && me.Distance2D(e) <= e.GetAttackRange()+50
-											//|| e.Modifiers.Any(y => y.Name == "modifier_juggernaut_omnislash")
-											|| (e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && IsCasted(e.Spellbook.SpellR))// && e.Modifiers.Any(y => y.Name == "modifier_windrunner_focusfire"))
-
-											)
-										&& e.IsAttacking() 
-										&& Utils.SleepCheck("Ghost"))
-									{
-										ghost.UseAbility();
-										Utils.Sleep(150, "Ghost");
-									}
-									/*
-									else if (ghost != null
-											&& ghost.CanBeCasted()
-											&& !me.IsAttackImmune()
-											&& e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && IsCasted(e.Spellbook.SpellR)//&& e.Modifiers.Any(y => y.Name == "modifier_windrunner_focusfire")
-											//&& e.IsAttacking() 
-										   && angle <= 0.03
-											&& Utils.SleepCheck("Ghost")
-											)
-									{
-										ghost.UseAbility();
-										Utils.Sleep(150, "Ghost");
-									}*/
-									
-								
-					//cyclone dodge attacking close enemy		
-					if (
-										(ghost == null || !ghost.CanBeCasted())
-										&& (sheep == null || !sheep.CanBeCasted())
-										&& (Laser == null || !Laser.CanBeCasted())
-										//&& (me.Spellbook.SpellE == null || !me.Spellbook.SpellE.CanBeCasted())
-
-										&& cyclone != null 
-										&& cyclone.CanBeCasted()
-										&& me.Distance2D(e) <= 575 + castrange + ensage_error
-										&& !me.IsAttackImmune()
-										&& !e.IsHexed()
-										&& !e.Modifiers.Any(y => y.Name == "modifier_tinker_laser_blind")
-										&& !e.Modifiers.Any(y => y.Name == "modifier_skywrath_mystic_flare_aura_effect")
-
-										&& angle <= 0.03
-										&& (e.ClassID == ClassID.CDOTA_Unit_Hero_Ursa 
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_PhantomAssassin 
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_Riki
-											
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_Sven
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_Spectre 
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_AntiMage 
-
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_TemplarAssassin 
-											|| e.ClassID == ClassID.CDOTA_Unit_Hero_Morphling 
-											
-											)
-										
-										&& e.IsAttacking() 
-										&& Utils.SleepCheck("Ghost"))
-									{
-										cyclone.UseAbility(e);
-										Utils.Sleep(150, "Ghost");
-									}
-					else if ( //если цель под ультой ская
-									(ghost == null || !ghost.CanBeCasted())
-									&& (sheep == null || !sheep.CanBeCasted())
-									&& (Laser == null || !Laser.CanBeCasted())
-						//&& (me.Spellbook.SpellE == null || !me.Spellbook.SpellE.CanBeCasted())
-									&& cyclone != null
-									&& cyclone.CanBeCasted()
-									&& me.Distance2D(e) <= 575 + castrange + ensage_error
-									&& !me.IsAttackImmune()
-									&& !e.IsHexed()
-									&& e.Modifiers.Any(y => y.Name == "modifier_skywrath_mystic_flare_aura_effect") ////!!!!!!!!
-
-									&& angle <= 0.03
-									&& (e.ClassID == ClassID.CDOTA_Unit_Hero_Ursa
-										|| e.ClassID == ClassID.CDOTA_Unit_Hero_PhantomAssassin
-										|| e.ClassID == ClassID.CDOTA_Unit_Hero_Riki
-										|| e.ClassID == ClassID.CDOTA_Unit_Hero_Spectre
-										|| e.ClassID == ClassID.CDOTA_Unit_Hero_AntiMage
-
-										|| e.ClassID == ClassID.CDOTA_Unit_Hero_TemplarAssassin
-										|| e.ClassID == ClassID.CDOTA_Unit_Hero_Morphling
-										)
-
-									&& e.IsAttacking()
-									&& Utils.SleepCheck("Ghost"))
-					{
-						cyclone.UseAbility(me);
-						Utils.Sleep(150, "Ghost");
-					}
 
 
-					else if ( //break special (1 hex, 2 cyclone)
-									!me.IsChanneling()
-						//&& (me.Spellbook.SpellE == null || !me.Spellbook.SpellE.CanBeCasted())
-									&& cyclone != null
-									&& cyclone.CanBeCasted()
-									&& (sheep == null || !sheep.CanBeCasted())
-									&& me.Distance2D(e) <= 575 + castrange + ensage_error
-									&& !e.IsHexed()
-									&& !e.Modifiers.Any(y => y.Name == "modifier_skywrath_mystic_flare_aura_effect") ////!!!!!!!!
-
-									&& (
-										//break special (1 hex, 2 cyclone)
-										e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && me.Modifiers.Any(y => y.Name == "modifier_riki_smoke_screen")
-										|| e.ClassID == ClassID.CDOTA_Unit_Hero_SpiritBreaker && e.Modifiers.Any(y => y.Name == "modifier_spirit_breaker_charge_of_darkness")
-										|| e.ClassID == ClassID.CDOTA_Unit_Hero_Phoenix && e.Modifiers.Any(y => y.Name == "modifier_phoenix_icarus_dive")
-										|| e.ClassID == ClassID.CDOTA_Unit_Hero_Magnataur && e.Modifiers.Any(y => y.Name == "modifier_magnataur_skewer_movement")
-
-										)
-									&& Utils.SleepCheck("Ghost"))
-					{
-						cyclone.UseAbility(e);
-						Utils.Sleep(150, "Ghost");
-					}
-					
+                    }
 
 
-									else if ( // Если ВРка
-											(ghost == null || !ghost.CanBeCasted())
-											&& (Laser == null || !Laser.CanBeCasted())
-											&& cyclone != null 
-											&& cyclone.CanBeCasted()
-											&& !me.IsAttackImmune()
-											&& !e.Modifiers.Any(y => y.Name == "modifier_skywrath_mystic_flare_aura_effect")
-											&& e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && IsCasted(e.Spellbook.SpellR)//&& e.Modifiers.Any(y => y.Name == "modifier_windrunner_focusfire")
-											//&& e.IsAttacking() 
-										   && angle <= 0.03
-											&& Utils.SleepCheck("Ghost")
-											)
-									{
-										cyclone.UseAbility(e);
-										Utils.Sleep(150, "Ghost");
-									}
-
-					
-				}
-				
-			
-				if (Menu.Item("autoKillsteal").GetValue<bool>() 
-					&& me.IsAlive 
-					&& me.IsVisible 
-					&& (Menu.Item("Chase").GetValue<KeyBind>().Active || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)))
-				{
-					if (e.Health < factdamage(e)
-						&& me.Mana >= manafactdamage(e)
-						&& (!CanReflectDamage(e) || me.IsMagicImmune())
-						//&& (!e.FindSpell("abaddon_borrowed_time").CanBeCasted() && !e.Modifiers.Any(y => y.Name == "modifier_abaddon_borrowed_time_damage_redirect"))
-						&& !e.Modifiers.Any(y => y.Name == "modifier_abaddon_borrowed_time_damage_redirect")
-						&& !e.Modifiers.Any(y => y.Name == "modifier_obsidian_destroyer_astral_imprisonment_prison")
-						&& !e.Modifiers.Any(y => y.Name == "modifier_puck_phase_shift")
-						&& !e.Modifiers.Any(y => y.Name == "modifier_eul_cyclone")
-						&& !e.Modifiers.Any(y => y.Name == "modifier_dazzle_shallow_grave")
-						&& !e.Modifiers.Any(y => y.Name == "modifier_brewmaster_storm_cyclone")
-						&& !e.Modifiers.Any(y => y.Name == "modifier_shadow_demon_disruption")
-						&& !e.Modifiers.Any(y => y.Name == "modifier_tusk_snowball_movement")
-						&& !me.Modifiers.Any(y => y.Name == "modifier_pugna_nether_ward_aura")
-						&& !me.IsSilenced() 
-						&& !me.IsHexed() 
-						&& !me.Modifiers.Any(y => y.Name == "modifier_doom_bringer_doom") 
-						&& !me.Modifiers.Any(y => y.Name == "modifier_riki_smoke_screen")
-						&& !me.Modifiers.Any(y => y.Name == "modifier_disruptor_static_storm"))
-						{
-							if (Utils.SleepCheck("AUTOCOMBO") && !me.IsChanneling())
-							{
-
-								bool EzkillCheck = EZkill(e);
-								bool magicimune = (!e.IsMagicImmune() && !e.Modifiers.Any(x => x.Name == "modifier_eul_cyclone"));
-								
-								if (!me.IsChanneling() 
-									&& me.CanAttack() 
-									&& !e.IsAttackImmune() 
-									&& !me.Spellbook.Spells.Any(x => x.IsInAbilityPhase)
-									&& OneHitLeft(e)
-									&& e.NetworkPosition.Distance2D(me) <= me.GetAttackRange()+50
-									//&& Utils.SleepCheck("attack")			
-									)
-								{
-									me.Attack(e);
-									//Orbwalking.Orbwalk(e);
-									//Utils.Sleep(250, "attack");
-								}
-								
-								if (soulring != null && soulring.CanBeCasted()
-									//&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name)  
-									&& e.NetworkPosition.Distance2D(me) < 2500
-									&& magicimune  
-									&& !OneHitLeft(e)
-									&& (((veil == null || !veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff")  /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/) && e.NetworkPosition.Distance2D(me) <= 1500+castrange) || ((e.NetworkPosition.Distance2D(me) > 1500+castrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*(spellamplymult+lensmult))))   )
-									&& (((ethereal == null || (ethereal!=null && !ethereal.CanBeCasted()) || IsCasted(ethereal) /*|| e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal")*/ /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/)&& e.NetworkPosition.Distance2D(me) <= 800+castrange)|| ((e.NetworkPosition.Distance2D(me) > 800+castrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*(spellamplymult+lensmult))))   )
-																		
-									)
-									soulring.UseAbility();
-									
-								
-								if (veil != null && veil.CanBeCasted() 
-									&& magicimune
-									//&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)
-									&& e.NetworkPosition.Distance2D(me) <= 1500+castrange + ensage_error
-									&& !OneHitLeft(e)
-									&& !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
-									&& !e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff"))
-								{
-									if (me.Distance2D(e)>1000 + castrange + ensage_error)
-									{
-										var a = me.Position.ToVector2().FindAngleBetween(e.Position.ToVector2(), true);
-										var p1 = new Vector3(
-											me.Position.X + (me.Distance2D(e)-500) * (float)Math.Cos(a),
-											me.Position.Y + (me.Distance2D(e)-500) * (float)Math.Sin(a),
-											100);
-										veil.UseAbility(p1);
-									}
-									else if (me.Distance2D(e)<=1000 + castrange + ensage_error)
-										veil.UseAbility(e.NetworkPosition);
-
-								}
-		
-
-									
-
-								if (ethereal != null && ethereal.CanBeCasted() 
-									//&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)
-									&& (!veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff") || veil == null /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/) 
-									&& !OneHitLeft(e)
-									&& magicimune
-									&& e.NetworkPosition.Distance2D(me) <= 800+castrange + ensage_error
-									&& !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
-									)
-									ethereal.UseAbility(e);
-
-								if (dagon != null && dagon.CanBeCasted() 
-									//&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_dagon")
-									&& (!veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff") || veil == null /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/) 
-									&& (ethereal == null || (ethereal!=null && !IsCasted(ethereal) && !ethereal.CanBeCasted()) || e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal") /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/) 
-									&& !OneHitLeft(e)
-									&& magicimune
-									&& e.NetworkPosition.Distance2D(me) <= dagondistance[dagon.Level - 1]+castrange + ensage_error
-									&& !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
-									)
-									dagon.UseAbility(e);
-							
-								
-								
-								if (Rocket.Level > 0 && Rocket.CanBeCasted() 
-									&& e.NetworkPosition.Distance2D(me) <= 2500 
-									&& (!EzkillCheck || e.NetworkPosition.Distance2D(me) >= 800+castrange + ensage_error)
-									&& !OneHitLeft(e)
-									&& magicimune  
-									//&& Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(Rocket.Name) 
-									//&& (((veil == null || !veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff")  | !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)) && e.NetworkPosition.Distance2D(me) <= 1500+castrange)|| ((e.NetworkPosition.Distance2D(me) > 1500+castrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*spellamplymult*lensmult)))   )
-									//&& (((ethereal == null || (ethereal!=null && !ethereal.CanBeCasted()) || IsCasted(ethereal) /*|| e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal")*/ | !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name))&& e.NetworkPosition.Distance2D(me) <= 800+castrange)|| ((e.NetworkPosition.Distance2D(me) > 800+castrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*spellamplymult*lensmult)))   )
-									&& (((veil == null || !veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff")  /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/) && e.NetworkPosition.Distance2D(me) <= 1500+castrange)|| (e.NetworkPosition.Distance2D(me) > 1500+castrange)    )
-									&& (((ethereal == null || (ethereal!=null && !ethereal.CanBeCasted()) || IsCasted(ethereal) /*|| e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal")*/ /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/)&& e.NetworkPosition.Distance2D(me) <= 800+castrange) || (e.NetworkPosition.Distance2D(me) > 800+castrange)   )
-									&& !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
-									)
-									Rocket.UseAbility();
-
-									
-								if (Laser.Level > 0 && Laser.CanBeCasted() 
-									//&& Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(Laser.Name)
-									&& !EzkillCheck 
-									&& !OneHitLeft(e)
-									&& magicimune 
-									&& e.NetworkPosition.Distance2D(me) <= 650+castrange + ensage_error
-									&& !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
-									)
-									Laser.UseAbility(e);
-									
-								if (shiva != null && shiva.CanBeCasted() 
-									//&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(shiva.Name)
-									&& (!veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff") || veil == null /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/) 
-									&& (ethereal == null || (ethereal!=null && !IsCasted(ethereal) && !ethereal.CanBeCasted()) || e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal") /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/) 
-									&& !EzkillCheck 
-									&& !OneHitLeft(e)
-									&& magicimune
-									&& e.NetworkPosition.Distance2D(me) <= 900 + ensage_error
-									&& !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
-									)
-									shiva.UseAbility();
 
 
-									
-									
-									
-								Utils.Sleep(150, "AUTOCOMBO");
+                    //Laser dodge close enemy
+                    if (Laser != null
+                        && Laser.CanBeCasted()
+                        && (sheep == null || !sheep.CanBeCasted())
+                        && !me.IsAttackImmune()
+                        && !e.IsHexed()
+                        && !e.IsMagicImmune()
+                        && angle <= 0.03
+                        && ((e.IsMelee && me.Position.Distance2D(e) < 250)
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_TemplarAssassin && me.Distance2D(e) <= e.GetAttackRange() + 50
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_TrollWarlord && me.Distance2D(e) <= e.GetAttackRange() + 50
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Clinkz && me.Distance2D(e) <= e.GetAttackRange() + 50
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Weaver && me.Distance2D(e) <= e.GetAttackRange() + 50
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Huskar && me.Distance2D(e) <= e.GetAttackRange() + 50
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Nevermore && me.Distance2D(e) <= e.GetAttackRange() + 50
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && me.Distance2D(e) <= e.GetAttackRange() + 50 && IsCasted(e.Spellbook.SpellR)// && e.Modifiers.Any(y => y.Name == "modifier_windrunner_focusfire"))
+                            )
+                        && e.IsAttacking()
+                        && Utils.SleepCheck("Ghost"))
+                    {
+                        Laser.UseAbility(e);
+                        Utils.Sleep(150, "Ghost");
+                    }
+                    /*
+                    else if (Laser != null
+                            && Laser.CanBeCasted()
+                            && !me.IsAttackImmune()
+                            && e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && IsCasted(e.Spellbook.SpellR)//&& e.Modifiers.Any(y => y.Name == "modifier_windrunner_focusfire")
+                            //&& e.IsAttacking() 
+                           && angle <= 0.03
+                            && Utils.SleepCheck("Ghost")
+                            )
+                    {
+                        ghost.UseAbility();
+                        Utils.Sleep(150, "Ghost");
+                    }*/
 
-							}
-						}
-			
-				}				
-			}
-				
-			
-		}		
-		
-		
+
+                    //ghost dodge close enemy
+                    if (ghost != null
+                        && ghost.CanBeCasted()
+                        && (sheep == null || !sheep.CanBeCasted())
+                        && (Laser == null || !Laser.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_juggernaut_omnislash"))
+                        && !me.IsAttackImmune()
+                        && !e.IsHexed()
+                        && (!e.Modifiers.Any(y => y.Name == "modifier_tinker_laser_blind") || e.Modifiers.Any(y => y.Name == "modifier_juggernaut_omnislash"))
+                        && angle <= 0.03
+                        && ((e.IsMelee && me.Position.Distance2D(e) < 250)
+                            && e.ClassID != ClassID.CDOTA_Unit_Hero_Tiny
+                            && e.ClassID != ClassID.CDOTA_Unit_Hero_Shredder
+                            && e.ClassID != ClassID.CDOTA_Unit_Hero_Nyx_Assassin
+                            && e.ClassID != ClassID.CDOTA_Unit_Hero_Meepo
+                            && e.ClassID != ClassID.CDOTA_Unit_Hero_Earthshaker
+                            && e.ClassID != ClassID.CDOTA_Unit_Hero_Centaur
+
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_TemplarAssassin && me.Distance2D(e) <= e.GetAttackRange() + 50
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_TrollWarlord && me.Distance2D(e) <= e.GetAttackRange() + 50
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Clinkz && me.Distance2D(e) <= e.GetAttackRange() + 50
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Weaver && me.Distance2D(e) <= e.GetAttackRange() + 50
+                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Huskar && me.Distance2D(e) <= e.GetAttackRange() + 50
+                            //|| e.Modifiers.Any(y => y.Name == "modifier_juggernaut_omnislash")
+                            || (e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && IsCasted(e.Spellbook.SpellR))// && e.Modifiers.Any(y => y.Name == "modifier_windrunner_focusfire"))
+
+                            )
+                        && e.IsAttacking()
+                        && Utils.SleepCheck("Ghost"))
+                    {
+                        ghost.UseAbility();
+                        Utils.Sleep(150, "Ghost");
+                    }
+                    /*
+                    else if (ghost != null
+                            && ghost.CanBeCasted()
+                            && !me.IsAttackImmune()
+                            && e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && IsCasted(e.Spellbook.SpellR)//&& e.Modifiers.Any(y => y.Name == "modifier_windrunner_focusfire")
+                            //&& e.IsAttacking() 
+                           && angle <= 0.03
+                            && Utils.SleepCheck("Ghost")
+                            )
+                    {
+                        ghost.UseAbility();
+                        Utils.Sleep(150, "Ghost");
+                    }*/
+
+
+                    //cyclone dodge attacking close enemy		
+                    if (
+                                        (ghost == null || !ghost.CanBeCasted())
+                                        && (sheep == null || !sheep.CanBeCasted())
+                                        && (Laser == null || !Laser.CanBeCasted())
+                                        //&& (me.Spellbook.SpellE == null || !me.Spellbook.SpellE.CanBeCasted())
+
+                                        && cyclone != null
+                                        && cyclone.CanBeCasted()
+                                        && me.Distance2D(e) <= 575 + castrange + ensage_error
+                                        && !me.IsAttackImmune()
+                                        && !e.IsHexed()
+                                        && !e.Modifiers.Any(y => y.Name == "modifier_tinker_laser_blind")
+                                        && !e.Modifiers.Any(y => y.Name == "modifier_skywrath_mystic_flare_aura_effect")
+
+                                        && angle <= 0.03
+                                        && (e.ClassID == ClassID.CDOTA_Unit_Hero_Ursa
+                                            || e.ClassID == ClassID.CDOTA_Unit_Hero_PhantomAssassin
+                                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Riki
+
+                                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Sven
+                                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Spectre
+                                            || e.ClassID == ClassID.CDOTA_Unit_Hero_AntiMage
+
+                                            || e.ClassID == ClassID.CDOTA_Unit_Hero_TemplarAssassin
+                                            || e.ClassID == ClassID.CDOTA_Unit_Hero_Morphling
+
+                                            )
+
+                                        && e.IsAttacking()
+                                        && Utils.SleepCheck("Ghost"))
+                    {
+                        cyclone.UseAbility(e);
+                        Utils.Sleep(150, "Ghost");
+                    }
+                    else if ( //если цель под ультой ская
+                                    (ghost == null || !ghost.CanBeCasted())
+                                    && (sheep == null || !sheep.CanBeCasted())
+                                    && (Laser == null || !Laser.CanBeCasted())
+                                    //&& (me.Spellbook.SpellE == null || !me.Spellbook.SpellE.CanBeCasted())
+                                    && cyclone != null
+                                    && cyclone.CanBeCasted()
+                                    && me.Distance2D(e) <= 575 + castrange + ensage_error
+                                    && !me.IsAttackImmune()
+                                    && !e.IsHexed()
+                                    && e.Modifiers.Any(y => y.Name == "modifier_skywrath_mystic_flare_aura_effect") ////!!!!!!!!
+
+                                    && angle <= 0.03
+                                    && (e.ClassID == ClassID.CDOTA_Unit_Hero_Ursa
+                                        || e.ClassID == ClassID.CDOTA_Unit_Hero_PhantomAssassin
+                                        || e.ClassID == ClassID.CDOTA_Unit_Hero_Riki
+                                        || e.ClassID == ClassID.CDOTA_Unit_Hero_Spectre
+                                        || e.ClassID == ClassID.CDOTA_Unit_Hero_AntiMage
+
+                                        || e.ClassID == ClassID.CDOTA_Unit_Hero_TemplarAssassin
+                                        || e.ClassID == ClassID.CDOTA_Unit_Hero_Morphling
+                                        )
+
+                                    && e.IsAttacking()
+                                    && Utils.SleepCheck("Ghost"))
+                    {
+                        cyclone.UseAbility(me);
+                        Utils.Sleep(150, "Ghost");
+                    }
+
+
+                    else if ( //break special (1 hex, 2 cyclone)
+                                    !me.IsChanneling()
+                                    //&& (me.Spellbook.SpellE == null || !me.Spellbook.SpellE.CanBeCasted())
+                                    && cyclone != null
+                                    && cyclone.CanBeCasted()
+                                    && (sheep == null || !sheep.CanBeCasted())
+                                    && me.Distance2D(e) <= 575 + castrange + ensage_error
+                                    && !e.IsHexed()
+                                    && !e.Modifiers.Any(y => y.Name == "modifier_skywrath_mystic_flare_aura_effect") ////!!!!!!!!
+
+                                    && (
+                                        //break special (1 hex, 2 cyclone)
+                                        e.ClassID == ClassID.CDOTA_Unit_Hero_Riki && me.Modifiers.Any(y => y.Name == "modifier_riki_smoke_screen")
+                                        || e.ClassID == ClassID.CDOTA_Unit_Hero_SpiritBreaker && e.Modifiers.Any(y => y.Name == "modifier_spirit_breaker_charge_of_darkness")
+                                        || e.ClassID == ClassID.CDOTA_Unit_Hero_Phoenix && e.Modifiers.Any(y => y.Name == "modifier_phoenix_icarus_dive")
+                                        || e.ClassID == ClassID.CDOTA_Unit_Hero_Magnataur && e.Modifiers.Any(y => y.Name == "modifier_magnataur_skewer_movement")
+
+                                        )
+                                    && Utils.SleepCheck("Ghost"))
+                    {
+                        cyclone.UseAbility(e);
+                        Utils.Sleep(150, "Ghost");
+                    }
+
+                    else if ( // Если ВРка
+                            (ghost == null || !ghost.CanBeCasted())
+                            && (Laser == null || !Laser.CanBeCasted())
+                            && cyclone != null
+                            && cyclone.CanBeCasted()
+                            && !me.IsAttackImmune()
+                            && !e.Modifiers.Any(y => y.Name == "modifier_skywrath_mystic_flare_aura_effect")
+                            && e.ClassID == ClassID.CDOTA_Unit_Hero_Windrunner && IsCasted(e.Spellbook.SpellR)//&& e.Modifiers.Any(y => y.Name == "modifier_windrunner_focusfire")
+                                                                                                              //&& e.IsAttacking() 
+                           && angle <= 0.03
+                            && Utils.SleepCheck("Ghost")
+                            )
+                    {
+                        cyclone.UseAbility(e);
+                        Utils.Sleep(150, "Ghost");
+                    }
+                }
+
+
+                if (Menu.Item("autoKillsteal").GetValue<bool>()
+                    && me.IsAlive
+                    && me.IsVisible
+                    && (Menu.Item("Chase").GetValue<KeyBind>().Active || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)))
+                {
+                    if (e.Health < GetComboDamageByDistance(e)
+                        && me.Mana >= manafactdamage(e)
+                        && (!CanReflectDamage(e) || me.IsMagicImmune())
+                        //&& (!e.FindSpell("abaddon_borrowed_time").CanBeCasted() && !e.Modifiers.Any(y => y.Name == "modifier_abaddon_borrowed_time_damage_redirect"))
+                        && !e.Modifiers.Any(y => y.Name == "modifier_abaddon_borrowed_time_damage_redirect")
+                        && !e.Modifiers.Any(y => y.Name == "modifier_obsidian_destroyer_astral_imprisonment_prison")
+                        && !e.Modifiers.Any(y => y.Name == "modifier_puck_phase_shift")
+                        && !e.Modifiers.Any(y => y.Name == "modifier_eul_cyclone")
+                        && !e.Modifiers.Any(y => y.Name == "modifier_dazzle_shallow_grave")
+                        && !e.Modifiers.Any(y => y.Name == "modifier_brewmaster_storm_cyclone")
+                        && !e.Modifiers.Any(y => y.Name == "modifier_shadow_demon_disruption")
+                        && !e.Modifiers.Any(y => y.Name == "modifier_tusk_snowball_movement")
+                        && !me.Modifiers.Any(y => y.Name == "modifier_pugna_nether_ward_aura")
+                        && !me.IsSilenced()
+                        && !me.IsHexed()
+                        && !me.Modifiers.Any(y => y.Name == "modifier_doom_bringer_doom")
+                        && !me.Modifiers.Any(y => y.Name == "modifier_riki_smoke_screen")
+                        && !me.Modifiers.Any(y => y.Name == "modifier_disruptor_static_storm"))
+                    {
+                        if (Utils.SleepCheck("AUTOCOMBO") && !me.IsChanneling())
+                        {
+
+                            bool EzkillCheck = EZKill(e);
+                            bool magicimune = (!e.IsMagicImmune() && !e.Modifiers.Any(x => x.Name == "modifier_eul_cyclone"));
+
+                            if (!me.IsChanneling()
+                                && me.CanAttack()
+                                && !e.IsAttackImmune()
+                                && !me.Spellbook.Spells.Any(x => x.IsInAbilityPhase)
+                                && OneHitLeft(e)
+                                && e.NetworkPosition.Distance2D(me) <= me.GetAttackRange() + 50
+                                //&& Utils.SleepCheck("attack")			
+                                )
+                            {
+                                me.Attack(e);
+                                //Orbwalking.Orbwalk(e);
+                                //Utils.Sleep(250, "attack");
+                            }
+
+                            if (soulring != null && soulring.CanBeCasted()
+                                //&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(soulring.Name)  
+                                && e.NetworkPosition.Distance2D(me) < 2500
+                                && magicimune
+                                && !OneHitLeft(e)
+                                && (((veil == null || !veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff")  /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/) && e.NetworkPosition.Distance2D(me) <= 1600 + castrange) || ((e.NetworkPosition.Distance2D(me) > 1600 + castrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0) * (spellamplymult + lensmult)))))
+                                && (((ethereal == null || (ethereal != null && !ethereal.CanBeCasted()) || IsCasted(ethereal) /*|| e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal")*/ /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/) && e.NetworkPosition.Distance2D(me) <= 800 + castrange) || ((e.NetworkPosition.Distance2D(me) > 800 + castrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0) * (spellamplymult + lensmult)))))
+
+                                )
+                                soulring.UseAbility();
+
+
+                            if (veil != null && veil.CanBeCasted()
+                                && magicimune
+                                //&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)
+                                && e.NetworkPosition.Distance2D(me) <= 1600 + castrange + ensage_error
+                                && !OneHitLeft(e)
+                                && !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
+                                && !e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff"))
+                            {
+                                if (me.Distance2D(e) > 1000 + castrange + ensage_error)
+                                {
+                                    var a = me.Position.ToVector2().FindAngleBetween(e.Position.ToVector2(), true);
+                                    var p1 = new Vector3(
+                                        me.Position.X + (me.Distance2D(e) - 500) * (float)Math.Cos(a),
+                                        me.Position.Y + (me.Distance2D(e) - 500) * (float)Math.Sin(a),
+                                        100);
+                                    veil.UseAbility(p1);
+                                }
+                                else if (me.Distance2D(e) <= 1000 + castrange + ensage_error)
+                                    veil.UseAbility(e.NetworkPosition);
+
+                            }
+
+                            if (ethereal != null && ethereal.CanBeCasted()
+                                //&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)
+                                && (!veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff") || veil == null /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/)
+                                && !OneHitLeft(e)
+                                && magicimune
+                                && e.NetworkPosition.Distance2D(me) <= 800 + castrange + ensage_error
+                                && !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
+                                )
+                                ethereal.UseAbility(e);
+
+                            if (dagon != null && dagon.CanBeCasted()
+                                //&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_dagon")
+                                && (!veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff") || veil == null /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/)
+                                && (ethereal == null || (ethereal != null && !IsCasted(ethereal) && !ethereal.CanBeCasted()) || e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal") /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/)
+                                && !OneHitLeft(e)
+                                && magicimune
+                                && e.NetworkPosition.Distance2D(me) <= dagondistance[dagon.Level - 1] + castrange + ensage_error
+                                && !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
+                                )
+                                dagon.UseAbility(e);
+
+                            if (Rocket.Level > 0 && Rocket.CanBeCasted()
+                                && e.NetworkPosition.Distance2D(me) <= 2500
+                                && (!EzkillCheck || e.NetworkPosition.Distance2D(me) >= 800 + castrange + ensage_error)
+                                && !OneHitLeft(e)
+                                && magicimune
+                                //&& Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(Rocket.Name) 
+                                //&& (((veil == null || !veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff")  | !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)) && e.NetworkPosition.Distance2D(me) <= 1600+castrange)|| ((e.NetworkPosition.Distance2D(me) > 1600+castrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*spellamplymult*lensmult)))   )
+                                //&& (((ethereal == null || (ethereal!=null && !ethereal.CanBeCasted()) || IsCasted(ethereal) /*|| e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal")*/ | !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name))&& e.NetworkPosition.Distance2D(me) <= 800+castrange)|| ((e.NetworkPosition.Distance2D(me) > 800+castrange) && (e.Health < (int)(e.DamageTaken(rocket_damage[Rocket.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*spellamplymult*lensmult)))   )
+                                && (((veil == null || !veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff")  /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/) && e.NetworkPosition.Distance2D(me) <= 1600 + castrange) || (e.NetworkPosition.Distance2D(me) > 1600 + castrange))
+                                && (((ethereal == null || (ethereal != null && !ethereal.CanBeCasted()) || IsCasted(ethereal) /*|| e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal")*/ /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/) && e.NetworkPosition.Distance2D(me) <= 800 + castrange) || (e.NetworkPosition.Distance2D(me) > 800 + castrange))
+                                && !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
+                                )
+                                Rocket.UseAbility();
+
+                            if (Laser.Level > 0 && Laser.CanBeCasted()
+                                //&& Menu.Item("Skills: ").GetValue<AbilityToggler>().IsEnabled(Laser.Name)
+                                && !EzkillCheck
+                                && !OneHitLeft(e)
+                                && magicimune
+                                && e.NetworkPosition.Distance2D(me) <= 650 + castrange + ensage_error
+                                && !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
+                                )
+                                Laser.UseAbility(e);
+
+                            if (shiva != null && shiva.CanBeCasted()
+                                //&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(shiva.Name)
+                                && (!veil.CanBeCasted() || e.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff") || veil == null /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name)*/)
+                                && (ethereal == null || (ethereal != null && !IsCasted(ethereal) && !ethereal.CanBeCasted()) || e.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal") /*| !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/)
+                                && !EzkillCheck
+                                && !OneHitLeft(e)
+                                && magicimune
+                                && e.NetworkPosition.Distance2D(me) <= 900 + ensage_error
+                                && !(e.Modifiers.Any(y => y.Name == "modifier_teleporting") && IsEulhexFind())
+                                )
+                                shiva.UseAbility();
+
+                            Utils.Sleep(150, "AUTOCOMBO");
+                        }
+                    }
+                }
+            }
+        }
+
         public static void DrawRanges(EventArgs args)
         {
 			if (!Game.IsInGame || Game.IsPaused || Game.IsWatchingGame || !Utils.SleepCheck("VisibilitySleep"))
@@ -1992,8 +1969,6 @@ namespace Tinker_Air13
             {
                 castrange += (int)talent20.AbilitySpecialData.First(x => x.Name == "value").Value;
             }
-
-            Console.WriteLine(castrange.ToString());
 
             if (Menu.Item("Show Direction").GetValue<bool>())
 			{
@@ -2281,15 +2256,13 @@ namespace Tinker_Air13
 			}	
         }
 
-
-       public static Vector3 FindVector(Vector3 first, double ret, float distance)
+        public static Vector3 FindVector(Vector3 first, double ret, float distance)
         {
             var retVector = new Vector3(first.X + (float) Math.Cos(Utils.DegreeToRadian(ret)) * distance,
                 first.Y + (float) Math.Sin(Utils.DegreeToRadian(ret)) * distance, 100);
 
             return retVector;
         }		
-		
 
         static void FindItems()
         {
@@ -2391,89 +2364,6 @@ namespace Tinker_Air13
             else
                 return false;
         }
-		
-
-		static bool EZkill(Hero en)
-        {
-            if (en != null && en.IsAlive && en.IsValid)
-            {
-                int alletherealdmg = 0, alldagondmg = 0, alllaserdmg = 0, allrocketdmg = 0, allshivadmg = 0, allphysdmg = 0;
-                int etherealdamage = (int)(((me.TotalIntelligence * 2) + 75));
-
-					
-				spellamplymult = 1 + (me.TotalIntelligence/16/100);
-
-				
-                if (((ethereal != null && ethereal.CanBeCasted()) || (ethereal != null && IsCasted(ethereal))) 
-                    && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name) 
-                    && !en.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal"))
-					etherealmult = 1.4;
-				else
-					etherealmult = 1;
-                if (veil != null && veil.CanBeCasted() && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name) && !en.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff"))
-					veilmult = 1.25;
-				else
-					veilmult = 1;
-				if (me.FindItem("item_aether_lens")!=null)
-					lensmult = 1.05;
-				else
-					lensmult = 1;
-                
-					
-				
-
-                allmult = etherealmult * veilmult * (lensmult + spellamplymult);
-
-                if (dagon != null && dagon.CanBeCasted() && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_dagon"))
-                    alldagondmg = (int)(en.DamageTaken(dagondamage[dagon.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*allmult);
-                else 
-					alldagondmg = 0;
-				
-				if (((ethereal != null && ethereal.CanBeCasted()) || (ethereal != null && IsCasted(ethereal)))  && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name))
-                    alletherealdmg = (int)(en.DamageTaken(etherealdamage, DamageType.Magical, me, false, 0, 0, 0) *allmult);
-				else
-					alletherealdmg = 0;
-					
-					
-				if (Laser!=null && Laser.Level>0 && Laser.CanBeCasted())
-					alllaserdmg = (int)(en.DamageTaken((int)(laser_damage[Laser.Level - 1]), DamageType.Pure, me, false, 0, 0, 0)* (lensmult + spellamplymult));
-				else
-					alllaserdmg = 0;
-				
-                if ((Rocket != null && Rocket.Level>0 && Rocket.CanBeCasted()) || (Rocket != null && Rocket.Level>0 && IsCasted(Rocket)))
-					allrocketdmg = (int)(en.DamageTaken((int)(rocket_damage[Rocket.Level - 1]), DamageType.Magical, me, false, 0, 0, 0)* allmult);
-				else
-					allrocketdmg = 0;
-					
-				if (((shiva != null && shiva.CanBeCasted()) || (shiva != null && IsCasted(shiva)))  && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(shiva.Name))
-                    allshivadmg = (int)(en.DamageTaken(200, DamageType.Magical, me, false, 0, 0, 0) *allmult);
-                else 
-					allshivadmg = 0;		
-
-				if (me.CanAttack() 
-					&& !en.IsAttackImmune() 
-					&& !en.IsInvul()
-					&& !IsPhysDamageImune(en)
-					//&& (ethereal == null || !ethereal.CanBeCasted())
-					//&& (ghost == null || !ghost.CanBeCasted() || !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ghost.Name))
-					)
-					allphysdmg = (int)(en.DamageTaken(me.BonusDamage + me.DamageAverage, DamageType.Physical, me));
-				else
-					allphysdmg = 0;
-					
-					
-				//factdamage = ((me.Distance2D(en)<650+castrange)? alllaserdmg : 0 )+ ((me.Distance2D(en)<2500)? allrocketdmg : 0) + ((me.Distance2D(en)<800+castrange)? (alletherealdmg + alldagondmg): 0);  //factical damage in current range
-				procastdamage = alldagondmg + alletherealdmg + allrocketdmg + alllaserdmg + allshivadmg + allphysdmg;
-				alldamage = alldagondmg + alletherealdmg ;
-                if (en.Health < alldamage)
-                    return true;
-                else
-                    return false;
-            }
-            else
-                return false;
-        }
-		
 
 		static int manaprocast()
         {
@@ -2558,93 +2448,6 @@ namespace Tinker_Air13
               
         }	
 
-		static int factdamage(Hero en)
-        {
-            if (en != null && en.IsAlive && en.IsValid)
-            {
-                int alletherealdmg = 0, alldagondmg = 0, dagondist = 0, alllaserdmg = 0, allrocketdmg = 0, allshivadmg = 0, allphysdmg = 0;
-                int etherealdamage = (int)(((me.TotalIntelligence * 2) + 75));
-				int factdamage1 = 0;
-
-					
-				spellamplymult = 1 + (me.TotalIntelligence/16/100);
-
-				
-
-				if (((ethereal != null && ethereal.CanBeCasted()) || (ethereal != null && IsCasted(ethereal))) && /*Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)&&*/ !en.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal"))
-					etherealmult = 1.4;
-				else
-					etherealmult = 1;
-				if (veil != null && veil.CanBeCasted() && /*Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name) &&*/ !en.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff"))
-					veilmult = 1.25;
-				else
-					veilmult = 1;
-				if (me.FindItem("item_aether_lens")!=null)
-					lensmult = 1.05;
-				else
-					lensmult = 1;
-
-
-                allmult = etherealmult * veilmult * (lensmult + spellamplymult);
-
-                if (dagon != null && dagon.CanBeCasted() /*&& Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_dagon")*/)
-				{
-                    alldagondmg = (int)(en.DamageTaken(dagondamage[dagon.Level - 1], DamageType.Magical, me, false, 0, 0, 0)*allmult);
-					dagondist = dagondistance[dagon.Level - 1];
-                }
-				else 
-				{
-					alldagondmg = 0;
-					dagondist = 0;
-				}
-				if (((ethereal != null && ethereal.CanBeCasted()) || (ethereal != null && IsCasted(ethereal))) /* && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name)*/)
-                    alletherealdmg = (int)(en.DamageTaken(etherealdamage, DamageType.Magical, me, false, 0, 0, 0) *allmult);
-				else
-					alletherealdmg = 0;
-					
-				if (((shiva != null && shiva.CanBeCasted()) || (shiva != null && IsCasted(shiva))) /* && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(shiva.Name)*/)
-                    allshivadmg = (int)(en.DamageTaken(200, DamageType.Magical, me, false, 0, 0, 0) *allmult);
-				else
-					allshivadmg = 0;					
-					
-					
-				if (Laser!=null && Laser.Level>0 && Laser.CanBeCasted())
-					alllaserdmg = (int)(en.DamageTaken((int)(laser_damage[Laser.Level - 1]), DamageType.Pure, me, false, 0, 0, 0)* (lensmult + spellamplymult));
-				else
-					alllaserdmg = 0;
-				
-                if ((Rocket != null && Rocket.Level>0 && Rocket.CanBeCasted()) || (Rocket != null && Rocket.Level>0 && IsCasted(Rocket)))
-					if (me.Distance2D(en) < 800 + castrange + ensage_error)
-						allrocketdmg = (int)(en.DamageTaken((int)(rocket_damage[Rocket.Level - 1]), DamageType.Magical, me, false, 0, 0, 0)* allmult);
-                    else if (me.Distance2D(en) >= 800 + castrange + ensage_error && me.Distance2D(en) < 1500 + castrange + ensage_error)
-						allrocketdmg = (int)(en.DamageTaken((int)(rocket_damage[Rocket.Level - 1]), DamageType.Magical, me, false, 0, 0, 0)* veilmult * lensmult * spellamplymult);
-                    else if (me.Distance2D(en) >= 1500 + castrange + ensage_error && me.Distance2D(en) < 2500)
-						allrocketdmg = (int)(en.DamageTaken((int)(rocket_damage[Rocket.Level - 1]), DamageType.Magical, me, false, 0, 0, 0)* lensmult * spellamplymult);
-				else
-					allrocketdmg = 0;
-					
-				if (me.CanAttack() 
-					&& !en.IsAttackImmune() 
-					&& me.Distance2D(en)<me.GetAttackRange()+50 
-					&& !en.IsInvul()
-					&& !IsPhysDamageImune(en)
-
-					//&& (ethereal == null || !ethereal.CanBeCasted())
-					//&& (ghost == null || !ghost.CanBeCasted() || !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ghost.Name))
-					)
-					allphysdmg = (int)(en.DamageTaken(me.BonusDamage + me.DamageAverage, DamageType.Physical, me));
-				else
-					allphysdmg = 0;
-					
-				factdamage1 = ((me.Distance2D(en)<650+castrange + ensage_error)? alllaserdmg : 0 )+ ((me.Distance2D(en)<2500)? allrocketdmg : 0) + ((me.Distance2D(en)<800+castrange + ensage_error)? alletherealdmg: 0) + ((me.Distance2D(en)<dagondist+castrange + ensage_error)? alldagondmg: 0) + ((me.Distance2D(en)<900 + ensage_error)? allshivadmg : 0) + allphysdmg;  //factical damage in current range
-                return factdamage1;
-              
-            }
-            else
-                return 0;
-        }
-
-
 		static int manafactdamage(Hero en)
         {
             if (en != null && en.IsAlive && en.IsValid)
@@ -2716,15 +2519,12 @@ namespace Tinker_Air13
 
         static int ProcastCounter(Hero en)
 		{
-			var maxprocastdmgstatic = (en.DamageTaken(GetComboDamage(), DamageType.Magical, me, false, 0, 0, 0));
-			var cleardmg = me.BonusDamage + me.DamageAverage;
-			var hitDmg = en.DamageTaken(cleardmg, DamageType.Physical, me);
             if (!en.IsMagicImmune() && !en.IsInvul())
             {
 				if (IsPhysDamageImune(en))
-                    return (int)Math.Ceiling(en.Health / maxprocastdmgstatic);
+                    return (int)Math.Ceiling(en.Health / GetComboDamage());
 				else
-					return (int)Math.Ceiling(en.Health / maxprocastdmgstatic - hitDmg/en.Health );
+					return (int)Math.Ceiling(en.Health / GetComboDamage() - GetOneAutoAttackDamage(en) / en.Health );
             }
             else 
                 return 999;
@@ -2734,10 +2534,10 @@ namespace Tinker_Air13
 		{
             if (!en.IsMagicImmune() && !en.IsInvul())
 			{
-				if (((int)((en.Health - procastdamage)/GetRocketDamage()))<=0)
+				if (((int)((en.Health - GetComboDamage(en) + GetOneAutoAttackDamage(en)) / GetRocketDamage()))<=0)
 					return 0;
 				else
-					return ((int)((en.Health - procastdamage)/GetRocketDamage()));
+					return ((int)((en.Health - GetComboDamage(en) + GetOneAutoAttackDamage(en)) / GetRocketDamage()));
 			}
 			else 
                 return 999;
@@ -2746,7 +2546,7 @@ namespace Tinker_Air13
 		static int OnlyRktCount(Hero en)
 		{
             if (!en.IsMagicImmune() && !en.IsInvul())
-				return ((int)(en.Health/GetRocketDamage()+1));
+				return ((int)(en.Health / GetRocketDamage()+1));
 			else 
                 return 999;
 		}
@@ -2755,7 +2555,7 @@ namespace Tinker_Air13
 		{
             if (!en.IsMagicImmune() && !en.IsInvul())
             {
-				return ((int)(en.Health/(int)GetRocketDamage()+1)*(int)GetRocketDamage());
+				return ((int)(en.Health / (int)GetRocketDamage() + 1) * (int)GetRocketDamage());
             }
 			else 
                 return 999;
@@ -2763,8 +2563,6 @@ namespace Tinker_Air13
 		
 		static int HitCount(Hero en)
 		{
-			var cleardmg = me.BonusDamage + me.DamageAverage;
-			var hitDmg = en.DamageTaken(cleardmg, DamageType.Physical, me);
 			//if (!me.CanAttack() || en.IsAttackImmune() || en.IsInvul() || ((int)Math.Ceiling((en.Health - procastdamage)/hitDmg))<=0)
             if (me.CanAttack() && !en.IsAttackImmune() && !en.IsInvul())
             {
@@ -2775,10 +2573,10 @@ namespace Tinker_Air13
                     return ((int)Math.Ceiling((en.Health - procastdamage)/hitDmg));
                 else
                     return ((int)Math.Ceiling((en.Health - procastdamage)/hitDmg)+1);*/
-				if ((int)Math.Ceiling((en.Health - procastdamage+hitDmg) / hitDmg) <= 0)
+				if ((int)Math.Ceiling((en.Health - GetComboDamage(en) + 2 * GetOneAutoAttackDamage(en)) / GetOneAutoAttackDamage(en)) <= 0)
 					return 0;
 				else
-					return ((int)Math.Ceiling((en.Health - procastdamage+hitDmg) / hitDmg));
+					return ((int)Math.Ceiling((en.Health - GetComboDamage(en) + 2 * GetOneAutoAttackDamage(en)) / GetOneAutoAttackDamage(en)));
 
             }
             else 
@@ -2788,19 +2586,15 @@ namespace Tinker_Air13
 		static bool OneHitLeft(Hero en)
 		{
 			
-			var cleardmg = me.BonusDamage + me.DamageAverage;
-			var hitDmg = en.DamageTaken(cleardmg, DamageType.Physical, me);
-			if(((en.Health<factdamage(en)) && (en.Health>factdamage(en)-hitDmg))
+			if(((en.Health < GetComboDamageByDistance(en)) && (en.Health > GetComboDamageByDistance(en) - GetOneAutoAttackDamage(en)))
 				&& !IsPhysDamageImune(en)
-				&& me.Distance2D(en) < me.GetAttackRange()+50
-				)
+				&& me.Distance2D(en) < me.GetAttackRange()+50)
 				return true;
 			else	
 				return false;
-			//return 	((en.Health-factdamage(en)-hitDmg)<0 && Math.Abs(en.Health-factdamage(en)-hitDmg)<hitDmg);
+			//return 	((en.Health-GetComboDamageByDistance(en)-hitDmg)<0 && Math.Abs(en.Health-GetComboDamageByDistance(en)-hitDmg)<hitDmg);
 			
 		}
-		
 		
         static void Information(EventArgs args)
         {
@@ -2820,30 +2614,31 @@ namespace Tinker_Air13
             //Console.WriteLine(eblade.AbilitySpecialData.FirstOrDefault(x => x.Name == "blast_agility_multiplier").Value.ToString());
             //Console.WriteLine(eblade.AbilitySpecialData.FirstOrDefault(x => x.Name == "blast_damage_base").Value.ToString());
 
+            Hero targetInf = null;
 
-            var targetInf = me.ClosestToMouseTarget(2000);
+            targetInf = me.ClosestToMouseTarget(2000);
             FindItems();
             if (targetInf != null && targetInf.IsValid && !targetInf.IsIllusion && targetInf.IsAlive && targetInf.IsVisible)
             {
 				if (Menu.Item("TargetCalculator").GetValue<bool>())
 				{	
-					var start = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(0, HUDInfo.GetHpBarSizeY(targetInf) - 50);
-					var starts = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(1, HUDInfo.GetHpBarSizeY(targetInf) - 49);
-					var start2 = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(0, HUDInfo.GetHpBarSizeY(targetInf) - 70);
-					var start2s = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(1, HUDInfo.GetHpBarSizeY(targetInf) - 69);
-					var start3 = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(0, HUDInfo.GetHpBarSizeY(targetInf) - 90);
-					var start3s = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(1, HUDInfo.GetHpBarSizeY(targetInf) - 89);
-					var start4 = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(-25, HUDInfo.GetHpBarSizeY(targetInf) - 13);
-					var start4s = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(-24, HUDInfo.GetHpBarSizeY(targetInf) - 12);
+					var start = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(0, HUDInfo.GetHpBarSizeY() - 70);
+					var starts = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(1, HUDInfo.GetHpBarSizeY() - 69);
+					var start2 = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(0, HUDInfo.GetHpBarSizeY() - 90);
+					var start2s = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(1, HUDInfo.GetHpBarSizeY() - 89);
+					var start3 = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(0, HUDInfo.GetHpBarSizeY() - 110);
+					var start3s = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(1, HUDInfo.GetHpBarSizeY() - 109);
+					var start4 = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(-25, HUDInfo.GetHpBarSizeY() - 13);
+					var start4s = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(-24, HUDInfo.GetHpBarSizeY() - 12);
 					
-					Drawing.DrawText(EZkill(targetInf) ? alldamage.ToString()+" ez" : alldamage.ToString(), starts, new Vector2(21, 21), Color.Black, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
-					Drawing.DrawText(EZkill(targetInf) ? alldamage.ToString()+" ez" : alldamage.ToString(), start, new Vector2(21, 21), EZkill(targetInf) ? Color.Lime : Color.Red, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
+					Drawing.DrawText(EZKill(targetInf) ? GetEZKillDamage(targetInf).ToString()+" ez" : GetEZKillDamage(targetInf).ToString(), starts, new Vector2(21, 21), Color.Black, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
+					Drawing.DrawText(EZKill(targetInf) ? GetEZKillDamage(targetInf).ToString()+" ez" : GetEZKillDamage(targetInf).ToString(), start, new Vector2(21, 21), EZKill(targetInf) ? Color.Lime : Color.Red, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
 					
-					Drawing.DrawText(procastdamage.ToString(), start2s, new Vector2(21, 21), Color.Black, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
-					Drawing.DrawText(procastdamage.ToString(), start2, new Vector2(21, 21), (targetInf.Health < procastdamage) ? Color.Lime : Color.Red, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
+					Drawing.DrawText((GetComboDamage(targetInf) + GetOneAutoAttackDamage(targetInf)).ToString(), start2s, new Vector2(21, 21), Color.Black, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
+					Drawing.DrawText((GetComboDamage(targetInf) + GetOneAutoAttackDamage(targetInf)).ToString(), start2, new Vector2(21, 21), (targetInf.Health < (GetComboDamage(targetInf) + GetOneAutoAttackDamage(targetInf))) ? Color.Lime : Color.Red, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
 
-					Drawing.DrawText(factdamage(targetInf).ToString(), start3s, new Vector2(21, 21), Color.Black, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
-					Drawing.DrawText(factdamage(targetInf).ToString(), start3, new Vector2(21, 21), (targetInf.Health < factdamage(targetInf)) ? Color.Lime : Color.Red, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
+					Drawing.DrawText(GetComboDamageByDistance(targetInf).ToString(), start3s, new Vector2(21, 21), Color.Black, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
+					Drawing.DrawText(GetComboDamageByDistance(targetInf).ToString(), start3, new Vector2(21, 21), (targetInf.Health < GetComboDamageByDistance(targetInf)) ? Color.Lime : Color.Red, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
 					
 					Drawing.DrawText("x"+ProcastCounter(targetInf).ToString(), start4s, new Vector2(21, 21), Color.Black, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
 					Drawing.DrawText("x"+ProcastCounter(targetInf).ToString(), start4, new Vector2(21, 21), Color.White, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
@@ -2856,16 +2651,16 @@ namespace Tinker_Air13
 				if (Menu.Item("HitCounter").GetValue<bool>())
 				{	
 					var hitcounter = HitCount(targetInf);
-					var starthit = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(107, HUDInfo.GetHpBarSizeY(targetInf) - 13);
-					var starthits = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(108, HUDInfo.GetHpBarSizeY(targetInf) - 12);
+					var starthit = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(117, HUDInfo.GetHpBarSizeY() - 13);
+					var starthits = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(118, HUDInfo.GetHpBarSizeY() - 12);
 					Drawing.DrawText(hitcounter.ToString()+" hits", starthits, new Vector2(21, 21), Color.Black, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
 					Drawing.DrawText(hitcounter.ToString()+" hits", starthit, new Vector2(21, 21), (hitcounter<=1)?Color.Lime:Color.White, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
 				}
 
 				if (Menu.Item("RocketCounter").GetValue<bool>() && Rocket.Level>0)
 				{	
-					var startrocket = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(107, HUDInfo.GetHpBarSizeY(targetInf) + 6);
-					var startrockets = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(108, HUDInfo.GetHpBarSizeY(targetInf) + 7);
+					var startrocket = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(117, HUDInfo.GetHpBarSizeY() + 6);
+					var startrockets = HUDInfo.GetHPbarPosition(targetInf) + new Vector2(118, HUDInfo.GetHpBarSizeY() + 7);
                     Drawing.DrawText(RktCount(targetInf).ToString() + " rkts", startrockets, new Vector2(21, 21), Color.Black, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
                     Drawing.DrawText(RktCount(targetInf).ToString() + " rkts", startrocket, new Vector2(21, 21), (RktCount(targetInf)<=1)?Color.Lime:Color.Yellow, FontFlags.AntiAlias | FontFlags.Additive | FontFlags.DropShadow);
 					if (Refresh != null && Refresh.Level>0)
@@ -2920,17 +2715,25 @@ namespace Tinker_Air13
                     Drawing.DrawText(GetEtherealBladeDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 435 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
                     Drawing.DrawText(GetEtherealBladeDamage().ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 - 100 + coordX, HUDInfo.ScreenSizeY() / 2 + 435 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
 
-                    target = TargetSelector.ClosestToMouse(me, 2000);
-
                     Drawing.DrawText("enemy magic res:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX + 50, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
                     Drawing.DrawText("enemy magic res:", new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX + 50, HUDInfo.ScreenSizeY() / 2 + 360 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
-                    Drawing.DrawText(target.MagicDamageResist.ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX + 280, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-                    Drawing.DrawText(target.MagicDamageResist.ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX + 280, HUDInfo.ScreenSizeY() / 2 + 360 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+                    Drawing.DrawText(targetInf.MagicDamageResist.ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX + 280, HUDInfo.ScreenSizeY() / 2 + 360 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText(targetInf.MagicDamageResist.ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX + 280, HUDInfo.ScreenSizeY() / 2 + 360 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
 
                     Drawing.DrawText("enemy combo dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX + 50, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
                     Drawing.DrawText("enemy combo dmg:", new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX + 50, HUDInfo.ScreenSizeY() / 2 + 385 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
-                    Drawing.DrawText(GetComboDamage(target).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX + 280, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-                    Drawing.DrawText(GetComboDamage(target).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX + 280, HUDInfo.ScreenSizeY() / 2 + 385 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+                    Drawing.DrawText(GetComboDamage(targetInf).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX + 280, HUDInfo.ScreenSizeY() / 2 + 385 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText(GetComboDamage(targetInf).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX + 280, HUDInfo.ScreenSizeY() / 2 + 385 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+
+                    Drawing.DrawText("enemy combo dmg by distance:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX + 50, HUDInfo.ScreenSizeY() / 2 + 410 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText("enemy combo dmg by distance:", new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX + 50, HUDInfo.ScreenSizeY() / 2 + 410 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+                    Drawing.DrawText(GetComboDamageByDistance(targetInf).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX + 420, HUDInfo.ScreenSizeY() / 2 + 410 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText(GetComboDamageByDistance(targetInf).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX + 420, HUDInfo.ScreenSizeY() / 2 + 410 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
+
+                    Drawing.DrawText("my distance to enemy:", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX + 50, HUDInfo.ScreenSizeY() / 2 + 435 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText("my distance to enemy:", new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX + 50, HUDInfo.ScreenSizeY() / 2 + 435 + coordY), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+                    Drawing.DrawText(me.Distance2D(targetInf).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + coordX + 420, HUDInfo.ScreenSizeY() / 2 + 435 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText(me.Distance2D(targetInf).ToString(), new Vector2(HUDInfo.ScreenSizeX() / 2 + coordX + 420, HUDInfo.ScreenSizeY() / 2 + 435 + coordY), new Vector2(30, 200), Color.LimeGreen, FontFlags.AntiAlias);
                 }
 
                 Drawing.DrawText("dmg", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 -200 + coordX, HUDInfo.ScreenSizeY() / 2 + 232 + 2 + coordY), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
@@ -3103,7 +2906,7 @@ namespace Tinker_Air13
 
             totalMagicResistance = ((1 - base_magic_res) * (1 + etheral_blade_magic_reduction) * (1 + veil_of_discord_magic_reduction));
 
-            comboDamage = (GetEtherealBladeDamage() + GetLaserDamage() + GetRocketDamage() + GetDagonDamage()) * totalMagicResistance;
+            comboDamage = ((GetEtherealBladeDamage() + GetRocketDamage() + GetDagonDamage()) * totalMagicResistance) + GetLaserDamage();
 
             return comboDamage;
         }
@@ -3131,74 +2934,169 @@ namespace Tinker_Air13
 
             totalMagicResistance = ((1 - enemy.MagicDamageResist) * (1 + etheral_blade_magic_reduction) * (1 + veil_of_discord_magic_reduction));
 
-            comboDamage = (GetEtherealBladeDamage() + GetLaserDamage() + GetRocketDamage() + GetDagonDamage()) * totalMagicResistance;
+            comboDamage = ((GetEtherealBladeDamage() + GetRocketDamage() + GetDagonDamage()) * totalMagicResistance) + GetLaserDamage();
 
             return comboDamage;
         }
 
-        /*
-        public static float GetComboDamageByDistance(Hero enemy)
+        //EZKill will only consider if dagon, ethereal blade and veil will kill the enemy
+        public static bool EZKill(Hero enemy)
         {
-            var comboDamage = 0.0f;
-            var comboDamageByDistance = 0.0f;
-            var totalMagicResistance = 0.0f;
-            var etheral_blade_magic_reduction = 0.0f;
-            var veil_of_discord_magic_reduction = 0.0f;
-
-            var eblade = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_ethereal_blade"));
-
-            if (((eblade != null && eblade.CanBeCasted()) 
-                || (eblade != null && IsCasted(eblade))) 
-                && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_ethereal_blade") 
-                && !enemy.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal"))
+            if (enemy != null && enemy.IsAlive && enemy.IsValid)
             {
-                etheral_blade_magic_reduction = 0.4f;
-            }
+                var EZKillDamage = 0.0f;
+                var totalMagicResistance = 0.0f;
+                var etheral_blade_magic_reduction = 0.0f;
+                var veil_of_discord_magic_reduction = 0.0f;
 
-            var veil = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_veil_of_discord"));
+                var eblade = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_ethereal_blade"));
 
-            if (veil != null 
-                && veil.CanBeCasted() 
-                && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_veil_of_discord") 
-                && !enemy.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff"))
-            {
-                veil_of_discord_magic_reduction = 0.25f;
-            }
+                if (eblade != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name))
+                {
+                    etheral_blade_magic_reduction = 0.4f;
+                }
 
-            var dagon = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_dagon"));
+                var veil = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_veil_of_discord"));
 
-            if (dagon != null && dagon.CanBeCasted() && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_dagon"))
-            {
-                comboDamage += GetDagonDamage();
-            }
+                if (veil != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name))
+                {
+                    veil_of_discord_magic_reduction = 0.25f;
+                }
 
-            if (((eblade != null && eblade.CanBeCasted()) 
-                || (eblade != null && IsCasted(eblade))) 
-                && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_ethereal_blade"))
-            {
-                comboDamage += GetEtherealBladeDamage();
-            }
-
-            var laser = me.Spellbook.SpellQ;
-
-            if (laser != null && laser.Level > 0 && laser.CanBeCasted())
-            {
-                comboDamage += GetLaserDamage();
-            }
-
-            //Distance Calculation
-            var rocket = me.Spellbook.SpellW;
-
-            if ((rocket != null && rocket.Level > 0 && rocket.CanBeCasted()) || (rocket != null && rocket.Level > 0 && IsCasted(rocket)))
-            {
-                if (me.Distance2D(enemy) < 800 + castrange + ensage_error)
-            }
                 totalMagicResistance = ((1 - enemy.MagicDamageResist) * (1 + etheral_blade_magic_reduction) * (1 + veil_of_discord_magic_reduction));
 
-            comboDamage = (GetEtherealBladeDamage() + GetLaserDamage() + GetRocketDamage() + GetDagonDamage()) * totalMagicResistance;
+                EZKillDamage = (GetEtherealBladeDamage() + GetDagonDamage()) * totalMagicResistance;
+                if (enemy.Health < EZKillDamage)
+                    return true;
+                else
+                    return false;
+            }
+            else
+                return false;
+        }
 
-            return comboDamageByDistance;
-        }*/
+        public static float GetEZKillDamage(Hero enemy)
+        {
+            if (enemy != null && enemy.IsAlive && enemy.IsValid)
+            {
+                var EZKillDamage = 0.0f;
+                var totalMagicResistance = 0.0f;
+                var etheral_blade_magic_reduction = 0.0f;
+                var veil_of_discord_magic_reduction = 0.0f;
+
+                var eblade = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_ethereal_blade"));
+
+                if (eblade != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ethereal.Name))
+                {
+                    etheral_blade_magic_reduction = 0.4f;
+                }
+
+                var veil = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_veil_of_discord"));
+
+                if (veil != null && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(veil.Name))
+                {
+                    veil_of_discord_magic_reduction = 0.25f;
+                }
+
+                totalMagicResistance = ((1 - enemy.MagicDamageResist) * (1 + etheral_blade_magic_reduction) * (1 + veil_of_discord_magic_reduction));
+
+                return EZKillDamage = (GetEtherealBladeDamage() + GetDagonDamage()) * totalMagicResistance;
+            }
+            else
+                return 0.0f;
+        }
+
+        public static float GetComboDamageByDistance(Hero enemy)
+        {
+            if (enemy != null && enemy.IsAlive && enemy.IsValid)
+            {
+                var comboDamageByDistance = 0.0f;
+                var totalMagicResistance = 0.0f;
+                var etheral_blade_magic_reduction = 0.0f;
+                var veil_of_discord_magic_reduction = 0.0f;
+
+                var eblade = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_ethereal_blade"));
+
+                if (((eblade != null && eblade.CanBeCasted())
+                    || (eblade != null && IsCasted(eblade)))
+                    && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_ethereal_blade")
+                    && !enemy.Modifiers.Any(y => y.Name == "modifier_item_ethereal_blade_ethereal"))
+                {
+                    etheral_blade_magic_reduction = 0.4f;
+                }
+
+                var veil = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_veil_of_discord"));
+
+                if (veil != null
+                    && veil.CanBeCasted()
+                    && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_veil_of_discord")
+                    && !enemy.Modifiers.Any(y => y.Name == "modifier_item_veil_of_discord_debuff"))
+                {
+                    veil_of_discord_magic_reduction = 0.25f;
+                }
+
+                totalMagicResistance = ((1 - enemy.MagicDamageResist) * (1 + etheral_blade_magic_reduction) * (1 + veil_of_discord_magic_reduction));
+
+                var dagon = me.Inventory.Items.FirstOrDefault(x => x.Name.Contains("item_dagon"));
+
+                if (dagon != null
+                    && dagon.CanBeCasted()
+                    && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_dagon")
+                    && (me.Distance2D(enemy) < dagon.AbilitySpecialData.First(x => x.Name == "#AbilityCastRange").GetValue(dagon.Level - 1) + castrange + ensage_error))
+                {
+                    comboDamageByDistance += GetDagonDamage() * totalMagicResistance;
+                }
+
+                if (((eblade != null && eblade.CanBeCasted())
+                    || (eblade != null && IsCasted(eblade)))
+                    && Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled("item_ethereal_blade")
+                    && (me.Distance2D(enemy) < 800 + castrange + ensage_error))
+                {
+                    comboDamageByDistance += GetEtherealBladeDamage() * totalMagicResistance;
+                }
+
+                var laser = me.Spellbook.SpellQ;
+
+                if (laser != null
+                    && laser.Level > 0
+                    && laser.CanBeCasted()
+                    && (me.Distance2D(enemy) < 650 + castrange + ensage_error))
+                {
+                    comboDamageByDistance += GetLaserDamage();
+                }
+
+                //Distance Calculation
+                var rocket = me.Spellbook.SpellW;
+
+                if ((rocket != null && rocket.Level > 0 && rocket.CanBeCasted()) || (rocket != null && rocket.Level > 0 && IsCasted(rocket)))
+                {
+                    if (me.Distance2D(enemy) < 800 + castrange + ensage_error)
+                        comboDamageByDistance += GetRocketDamage() * totalMagicResistance;
+                    else if (me.Distance2D(enemy) >= 800 + castrange + ensage_error && me.Distance2D(enemy) < 1600 + castrange + ensage_error)
+                        comboDamageByDistance += GetRocketDamage() * ((1 - enemy.MagicDamageResist) * (1 + veil_of_discord_magic_reduction));
+                    else if (me.Distance2D(enemy) >= 1600 + castrange + ensage_error && me.Distance2D(enemy) < 2500)
+                        comboDamageByDistance += GetRocketDamage() * ((1 - enemy.MagicDamageResist));
+                }
+
+                if (me.CanAttack()
+                    && !enemy.IsAttackImmune()
+                    && me.Distance2D(enemy) < me.GetAttackRange() + 50
+                    && !enemy.IsInvul()
+                    && !IsPhysDamageImune(enemy)
+                    //&& (ethereal == null || !ethereal.CanBeCasted())
+                    //&& (ghost == null || !ghost.CanBeCasted() || !Menu.Item("Items: ").GetValue<AbilityToggler>().IsEnabled(ghost.Name))
+                    )
+                {
+                    comboDamageByDistance += (enemy.DamageTaken(me.BonusDamage + me.DamageAverage, DamageType.Physical, me));
+                }
+
+                return comboDamageByDistance;
+            }
+            else
+            {
+                return 0;
+            }
+        }
 
         public static float GetLaserDamage()
         {
@@ -3300,6 +3198,21 @@ namespace Tinker_Air13
             dagonDamage *= totalSpellAmp;
 
             return dagonDamage;
+        }
+
+        public static float GetOneAutoAttackDamage(Hero enemy)
+        {
+            var OneAutoAttackDamage = 0.0f;
+
+            if (me.CanAttack()
+                && !enemy.IsAttackImmune()
+                && !enemy.IsInvul()
+                && !IsPhysDamageImune(enemy))
+            {
+                OneAutoAttackDamage += (enemy.DamageTaken(me.BonusDamage + me.DamageAverage, DamageType.Physical, me));
+            }
+
+            return OneAutoAttackDamage;
         }
 
         public static float GetEtherealBladeDamage()
