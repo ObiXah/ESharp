@@ -154,6 +154,7 @@ namespace Tinker_Air13
             _settings.AddItem(new MenuItem("BarPosXr", "Rocket Calc Position X").SetValue(new Slider(950, -1500, 1500)));
             _settings.AddItem(new MenuItem("BarPosYr", "Rocket Calc Position Y").SetValue(new Slider(-300, -1500, 1500)));
 
+            _settings.AddItem(new MenuItem("ComboModeDrawing", "Enable Combo Mode drawing").SetValue(true));
             _settings.AddItem(new MenuItem("debug", "Enable debug").SetValue(false));
 
             Menu.AddToMainMenu();
@@ -2983,39 +2984,43 @@ namespace Tinker_Air13
 				}
 			}
 
-			if (Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key) && !Game.IsChatOpen)
-			{
-                //Drawing.DrawText(Menu.Item("Chase").GetValue<KeyBind>().Active == true ? "Chasing" : "Comboing", new Vector2(HUDInfo.ScreenSizeX() / 2 +2, HUDInfo.ScreenSizeY() / 2 + 160 +2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-                //Drawing.DrawText(Menu.Item("Chase").GetValue<KeyBind>().Active == true ? "Chasing" : "Comboing", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 160), new Vector2(30, 200), Menu.Item("Chase").GetValue<KeyBind>().Active == true ? Color.Red : Color.LimeGreen, FontFlags.AntiAlias);
-			    Drawing.DrawText(" ON!", new Vector2(HUDInfo.ScreenSizeX() / 2 +2+150, HUDInfo.ScreenSizeY() / 2 + 235 +2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-                Drawing.DrawText(" ON!", new Vector2(HUDInfo.ScreenSizeX() / 2+150, HUDInfo.ScreenSizeY() / 2 + 235), new Vector2(30, 200), Menu.Item("Chase").GetValue<KeyBind>().Active == true ? Color.Red : Color.LimeGreen, FontFlags.AntiAlias);
-			
-			}
+            if (Menu.Item("ComboModeDrawing").GetValue<bool>())
+            {
 
-			if (Game.IsKeyDown(Menu.Item("Rocket Spam Key").GetValue<KeyBind>().Key) && !Game.IsChatOpen)
-			{
-				Drawing.DrawText("Rocket Spam!", new Vector2(HUDInfo.ScreenSizeX() / 2 +2, HUDInfo.ScreenSizeY() / 2 + 185 +2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText("Rocket Spam!", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 185), new Vector2(30, 200), Color.Yellow, FontFlags.AntiAlias);
-			}
+                if (Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key) && !Game.IsChatOpen)
+                {
+                    //Drawing.DrawText(Menu.Item("Chase").GetValue<KeyBind>().Active == true ? "Chasing" : "Comboing", new Vector2(HUDInfo.ScreenSizeX() / 2 +2, HUDInfo.ScreenSizeY() / 2 + 160 +2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    //Drawing.DrawText(Menu.Item("Chase").GetValue<KeyBind>().Active == true ? "Chasing" : "Comboing", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 160), new Vector2(30, 200), Menu.Item("Chase").GetValue<KeyBind>().Active == true ? Color.Red : Color.LimeGreen, FontFlags.AntiAlias);
+                    Drawing.DrawText(" ON!", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2 + 150, HUDInfo.ScreenSizeY() / 2 + 235 + 2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText(" ON!", new Vector2(HUDInfo.ScreenSizeX() / 2 + 150, HUDInfo.ScreenSizeY() / 2 + 235), new Vector2(30, 200), Menu.Item("Chase").GetValue<KeyBind>().Active == true ? Color.Red : Color.LimeGreen, FontFlags.AntiAlias);
 
-			if (Game.IsKeyDown(Menu.Item("March Spam Key").GetValue<KeyBind>().Key) && !Game.IsChatOpen)
-			{
-				Drawing.DrawText("March Spam!", new Vector2(HUDInfo.ScreenSizeX() / 2 +2, HUDInfo.ScreenSizeY() / 2 + 210 +2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText("March Spam!", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 210), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+                }
 
-			}
+                if (Game.IsKeyDown(Menu.Item("Rocket Spam Key").GetValue<KeyBind>().Key) && !Game.IsChatOpen)
+                {
+                    Drawing.DrawText("Rocket Spam!", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2, HUDInfo.ScreenSizeY() / 2 + 185 + 2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText("Rocket Spam!", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 185), new Vector2(30, 200), Color.Yellow, FontFlags.AntiAlias);
+                }
 
-			Drawing.DrawText(Menu.Item("Chase").GetValue<KeyBind>().Active == true ? "Chase Mode" : "Combo Mode", new Vector2(HUDInfo.ScreenSizeX() / 2 +2, HUDInfo.ScreenSizeY() / 2 + 235 +2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-			Drawing.DrawText(Menu.Item("Chase").GetValue<KeyBind>().Active == true ? "Chase Mode" : "Combo Mode", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 235), new Vector2(30, 200), Menu.Item("Chase").GetValue<KeyBind>().Active == true ? Color.Red : Color.LimeGreen, FontFlags.AntiAlias);
-			
-			Drawing.DrawText(Menu.Item("TargetLock").GetValue<StringList>().SelectedIndex==0 ? "Target: Free" : "Target: Lock", new Vector2(HUDInfo.ScreenSizeX() / 2 +2, HUDInfo.ScreenSizeY() / 2 + 285 +2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-			Drawing.DrawText(Menu.Item("TargetLock").GetValue<StringList>().SelectedIndex==0 ? "Target: Free" : "Target: Lock", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 285), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
-			
-			if (Menu.Item("autoKillsteal").GetValue<bool>())
-			{
-				Drawing.DrawText((Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? "KS: on" : "KS: off", new Vector2(HUDInfo.ScreenSizeX() / 2 +2, HUDInfo.ScreenSizeY() / 2 + 260 +2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
-				Drawing.DrawText((Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? "KS: on" : "KS: off", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 260), new Vector2(30, 200),(Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);
-			}
+                if (Game.IsKeyDown(Menu.Item("March Spam Key").GetValue<KeyBind>().Key) && !Game.IsChatOpen)
+                {
+                    Drawing.DrawText("March Spam!", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2, HUDInfo.ScreenSizeY() / 2 + 210 + 2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText("March Spam!", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 210), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+
+                }
+
+                Drawing.DrawText(Menu.Item("Chase").GetValue<KeyBind>().Active == true ? "Chase Mode" : "Combo Mode", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2, HUDInfo.ScreenSizeY() / 2 + 235 + 2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText(Menu.Item("Chase").GetValue<KeyBind>().Active == true ? "Chase Mode" : "Combo Mode", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 235), new Vector2(30, 200), Menu.Item("Chase").GetValue<KeyBind>().Active == true ? Color.Red : Color.LimeGreen, FontFlags.AntiAlias);
+
+                Drawing.DrawText(Menu.Item("TargetLock").GetValue<StringList>().SelectedIndex == 0 ? "Target: Free" : "Target: Lock", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2, HUDInfo.ScreenSizeY() / 2 + 285 + 2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                Drawing.DrawText(Menu.Item("TargetLock").GetValue<StringList>().SelectedIndex == 0 ? "Target: Free" : "Target: Lock", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 285), new Vector2(30, 200), Color.White, FontFlags.AntiAlias);
+
+                if (Menu.Item("autoKillsteal").GetValue<bool>())
+                {
+                    Drawing.DrawText((Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? "KS: on" : "KS: off", new Vector2(HUDInfo.ScreenSizeX() / 2 + 2, HUDInfo.ScreenSizeY() / 2 + 260 + 2), new Vector2(30, 200), Color.Black, FontFlags.AntiAlias);
+                    Drawing.DrawText((Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? "KS: on" : "KS: off", new Vector2(HUDInfo.ScreenSizeX() / 2, HUDInfo.ScreenSizeY() / 2 + 260), new Vector2(30, 200), (Menu.Item("Chase").GetValue<KeyBind>().Active == true || !Game.IsKeyDown(Menu.Item("Combo Key").GetValue<KeyBind>().Key)) ? Color.LimeGreen : Color.Red, FontFlags.AntiAlias);
+                }
+            }
 		}
 
         public static float GetComboDamage()
